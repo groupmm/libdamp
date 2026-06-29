@@ -18,7 +18,7 @@ class TVMagnitudesFilter(TVFIRFilter):
     Applies blockwise processing of audio with time-varying FIR filters defined
     by magnitude specifications using `design_fir_filter`. This is a specialization of
     [`TVFIRFilter`][libdamp.processors.tv_fir_filter.TVFIRFilter] that derives the filter
-    taps from a magnitude response instead of taking them directly; `process()` is
+    taps from a magnitude response instead of taking them directly. `process()` is
     inherited unchanged.
     """
 

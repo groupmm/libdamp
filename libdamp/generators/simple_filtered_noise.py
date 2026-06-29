@@ -80,7 +80,7 @@ class SimpleFilteredNoise(Generator):
         return y[..., : self.L * F]
 
     def update(self):
-        """No-op; `SimpleFilteredNoise` is stateless, all parameters are passed directly to `generate()`."""
+        """No-op. `SimpleFilteredNoise` is stateless and all parameters are passed directly to `generate()`."""
 
     def clear(self):
-        """No-op; `SimpleFilteredNoise` is stateless and has no internal state to reset."""
+        """No-op. `SimpleFilteredNoise` is stateless and has no internal state to reset."""

@@ -7,8 +7,6 @@ import math
 
 import torch
 
-__all__ = ["Convolution"]
-
 
 class Convolution(torch.nn.Module):
     """Fast and Flexible FIR Filter implementation
@@ -17,6 +15,8 @@ class Convolution(torch.nn.Module):
     It allows for a time-varying filter. Upon filter exchange, the next input signal frame is processed both with
     the new and the previous filter, and a time-domain cross-fade between the two filter output signals is performed
     to avoid discontinuities.
+
+    Note that variable names follow the algorithmic description in [1]_.
 
     .. [1] F. Wefers, Partitioned Convolution Algorithms for Real-Time Auralization.
            Aachener Beiträge zur technischen Akustik, Band 20. Logos Verlag, Berlin, 2015.

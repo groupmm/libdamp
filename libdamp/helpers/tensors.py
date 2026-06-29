@@ -10,18 +10,6 @@ from torchaudio.functional import convolve
 
 from libdamp.helpers.transforms import get_window
 
-__all__ = [
-    "tensor_linspace",
-    "apply_along_dim",
-    "ensure_tensor",
-    "interpolate_samples",
-    "smooth",
-    "cubic_hermite_splines",
-    "interpolate_pchip",
-    "interpolate_linear",
-    "poly",
-]
-
 
 def tensor_linspace(start: torch.Tensor, end: torch.Tensor, steps: int = 10) -> torch.Tensor:
     """Vectorized version of torch.linspace.

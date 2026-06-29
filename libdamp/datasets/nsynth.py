@@ -8,8 +8,6 @@ import gin
 import torch
 import torchaudio as taudio
 
-__all__ = ["NSynthDataset"]
-
 
 @gin.register
 class NSynthDataset(torch.utils.data.Dataset):

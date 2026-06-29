@@ -19,7 +19,7 @@ class TestHz2Midi:
         assert torch.isclose(p[1], torch.tensor(69.0))
 
     def test_accepts_plain_float_input(self):
-        # the type hint advertises float support; this used to crash (torch.ones_like on a float).
+        # the type hint advertises float support. This used to crash (torch.ones_like on a float).
         p = hz2midi(440.0)
         assert torch.is_tensor(p)
         assert p.shape == ()
@@ -42,7 +42,7 @@ class TestMidi2Hz:
         assert torch.isclose(f[1], torch.tensor(440.0))
 
     def test_accepts_plain_float_input(self):
-        # the type hint advertises float support; this used to crash (item assignment on a float).
+        # the type hint advertises float support. This used to crash (item assignment on a float).
         f = midi2hz(69.0)
         assert torch.is_tensor(f)
         assert f.shape == ()

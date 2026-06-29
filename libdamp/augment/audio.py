@@ -8,8 +8,6 @@ import torch
 from libdamp.augment.augment import Augmentation
 from libdamp.helpers.tensors import ensure_tensor
 
-__all__ = ["NoiseAugmentation", "DropoutArtifactAugmentation", "NoiseArtifactAugmentation"]
-
 
 @gin.register
 class NoiseAugmentation(Augmentation):

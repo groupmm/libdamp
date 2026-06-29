@@ -6,8 +6,6 @@ This module is part of the libdamp package.
 import gin
 import torch
 
-__all__ = ["exp_sigmoid"]
-
 
 @gin.configurable
 def exp_sigmoid(x, x_max: float = 2.0, x_min: float = 1e-8, exp: float = 1.0) -> torch.Tensor:

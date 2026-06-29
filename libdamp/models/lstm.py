@@ -6,8 +6,6 @@ Copied from https://github.com/jongwook/onsets-and-frames/blob/master/onsets_and
 import torch
 from torch import nn
 
-__all__ = ["BiLSTM"]
-
 
 class BiLSTM(nn.Module):
     inference_chunk_length: int = 512

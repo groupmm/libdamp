@@ -62,7 +62,7 @@ class Envelope(Processor):
         y = env * x
 
         if not has_channel and y.shape[-2] == 1:
-            # only the dummy channel dimension we added above is removed; if `g` itself defines
+            # only the dummy channel dimension we added above is removed. If `g` itself defines
             # more than one channel, the output legitimately gains that channel dimension.
             y = y[:, 0, :]
 

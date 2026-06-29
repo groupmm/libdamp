@@ -10,19 +10,6 @@ import torch
 
 from libdamp.helpers.tensors import ensure_tensor, interpolate_linear, poly
 
-__all__ = [
-    "THIRD_OCTAVE_BANDS",
-    "OCTAVE_BANDS",
-    "freqz",
-    "combined_freqz",
-    "design_resonant_filter",
-    "design_butter_bandpass",
-    "design_butter_filter",
-    "design_fir_filter",
-    "iir_freq_sampling",
-]
-
-
 # Center frequencies for the most common third-octave bands, splitting the common range of HiFi audio into 31 bands
 # fmt: off
 THIRD_OCTAVE_BANDS = torch.Tensor(
@@ -136,7 +123,7 @@ def design_resonant_filter(f: torch.Tensor, r: torch.Tensor, fs: float) -> tuple
         Center frequency or frequencies in Hz, shape (batch,) or scalar.
     r : torch.Tensor
         Notch radius between 0 and 1 controlling filter sharpness. Values closer to 1
-        produce sharper, narrower resonances; values closer to 0 produce wider resonances.
+        produce sharper, narrower resonances. Values closer to 0 produce wider resonances.
         Shape must match f or be broadcastable to f.
     fs : float
         Sampling rate in Hz.
@@ -333,7 +320,7 @@ def design_fir_filter(
         - "linear": return a linear-phase filter with a symmetric impulse response
         - "minimum": return a minimum-phase filter, see also [1]
     return_fd : bool
-        If True, returns filter in frequency domain; if False, returns in time domain (default: False).
+        If True, returns the filter in the frequency domain. If False, returns it in the time domain (default: False).
     min_mag : float
         Minimum magnitude floor to avoid log(0) issues with minimum-phase design (default: 1e-10).
 

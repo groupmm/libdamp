@@ -7,8 +7,6 @@ All of this code is copied from torchvision.models.resnet. Only the input size o
 import torch
 from torch import Tensor, nn
 
-__all__ = ["BasicBlock", "ResNet", "resnet18"]
-
 
 def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
     """Create a 3x3 convolutional layer with padding.

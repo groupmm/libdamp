@@ -8,8 +8,6 @@ import numpy as np
 import torch
 import torchaudio as taudio
 
-__all__ = ["MDBSynthDataset"]
-
 
 @gin.register
 class MDBSynthDataset(torch.utils.data.Dataset):

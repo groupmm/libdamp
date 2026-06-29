@@ -9,8 +9,6 @@ import torch
 from libdamp.helpers.tensors import interpolate_pchip
 from libdamp.helpers.transforms import get_window
 
-__all__ = ["ExcerptsDataset", "SignalF0ExcerptsDataset"]
-
 
 @gin.register
 class ExcerptsDataset(torch.utils.data.Dataset):
@@ -102,8 +100,8 @@ class SignalF0ExcerptsDataset(ExcerptsDataset):
     def __init__(
         self,
         path: str,
-        M: int = 100,
-        F: int = 128,
+        num_harm: int = 100,
+        num_frames: int = 128,
         fs: float = 16000.0,
         ds_split: str = "train",
         return_keys: list = ["f", "a"],
@@ -117,10 +115,10 @@ class SignalF0ExcerptsDataset(ExcerptsDataset):
             `signal_<ds_split>.npy` (always required) and `f0_<ds_split>.npy`
             (required if "f0", "f", or "a" is among `return_keys`), as well as
             one `<key>_<ds_split>.npy` file for every other key in `return_keys`.
-        M : int
+        num_harm : int
             Number of harmonics of F0 to consider when computing "f" and "a"
             (default: 100).
-        F : int
+        num_frames : int
             Number of time frames per excerpt used for STFT-based computation of
             "f" and "a" (default: 128). The signal length must be divisible by `F`.
         fs : float
@@ -139,8 +137,8 @@ class SignalF0ExcerptsDataset(ExcerptsDataset):
               `path/<key>_<ds_split>.npy`, e.g. "f0" for the fundamental frequency
               trajectory, shape (frames,).
         """
-        self.M = M
-        self.F = F
+        self.num_harm = num_harm
+        self.num_frames = num_frames
         self.fs = fs
 
         output_keys = ["signal"] + list(return_keys)
@@ -162,23 +160,23 @@ class SignalF0ExcerptsDataset(ExcerptsDataset):
             x = y["signal"]
 
             # calculate f_ref and a_ref from F0 + spectrogram
-            f = y["f0"][:, None] * torch.arange(1, self.M + 1)
+            f = y["f0"][:, None] * torch.arange(1, self.num_harm + 1)
 
             N = 4096
             L = x.shape[-1]
-            frame_len = L // self.F
-            assert frame_len == L / self.F, "Signal length must be divisible by F."
+            frame_len = L // self.num_frames
+            assert frame_len == L / self.num_frames, "Signal length must be divisible by F."
 
             w = get_window("hann", N).type_as(x)
             X = torch.abs(torch.stft(x, n_fft=N, hop_length=frame_len, window=w, center=True, return_complex=True, normalized=False))
             X /= N  # normalize for both forward and backward transform
             X *= 3.14  # account for Hann window spread of the energy when peak picking
-            X = torch.transpose(X[..., : self.F], -1, -2).squeeze()
+            X = torch.transpose(X[..., : self.num_frames], -1, -2).squeeze()
 
             f_fft = torch.fft.rfftfreq(N, 1 / self.fs)
 
-            a = torch.zeros((self.F, self.M))
-            for fr in range(self.F):
+            a = torch.zeros((self.num_frames, self.num_harm))
+            for fr in range(self.num_frames):
                 if torch.count_nonzero(f[fr]) == 0:
                     continue
                 a[fr] = interpolate_pchip(f_fft, X[fr], f[fr])

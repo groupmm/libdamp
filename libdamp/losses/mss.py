@@ -10,8 +10,6 @@ import torch
 
 from libdamp.helpers.transforms import get_window
 
-__all__ = ["MSSLoss"]
-
 
 @gin.configurable
 class MSSLoss(torch.nn.Module):

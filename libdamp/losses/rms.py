@@ -9,8 +9,6 @@ import torch
 from libdamp.helpers.tensors import ensure_tensor
 from libdamp.helpers.transforms import get_window
 
-__all__ = ["RMSLoss"]
-
 
 @gin.configurable
 class RMSLoss(torch.nn.Module):

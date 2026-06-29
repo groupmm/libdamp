@@ -4,8 +4,6 @@ import gin
 import numpy as np
 import torch
 
-__all__ = ["CombinedDataset", "ZipDataset"]
-
 
 @gin.register
 class CombinedDataset(torch.utils.data.Dataset):

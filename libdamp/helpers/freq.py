@@ -9,8 +9,6 @@ import torch
 
 from libdamp.helpers.tensors import ensure_tensor
 
-__all__ = ["hz2midi", "midi2hz", "timbre2harmonics"]
-
 
 def hz2midi(f: torch.Tensor | float, a4_ref: float = 440.0, zero_val: int | float = -1) -> torch.Tensor:
     """Convert frequency to MIDI pitch with respect to a reference.
@@ -92,9 +90,9 @@ def timbre2harmonics(
         - "flat": all harmonics with unit amplitude.
         - "clarinet-like": odd harmonics only, amplitudes ~ 1/n.
         - "random_harmonic": harmonic factors 1..H, amplitudes ~ N(1, amplitude_sigma), clipped at 0.
-        - "random_inharmonic": harmonic factors for n>=2 are jittered by N(n, harmonic_sigma);
+        - "random_inharmonic": harmonic factors for n>=2 are jittered by N(n, harmonic_sigma), and
           amplitudes ~ N(1, amplitude_sigma), clipped at 0. The first harmonic factor remains 1.
-        - "random_inharmonic_sawtooth": harmonic factors for n>=2 are jittered by N(n, harmonic_sigma);
+        - "random_inharmonic_sawtooth": harmonic factors for n>=2 are jittered by N(n, harmonic_sigma), and
           amplitudes follow the sawtooth series (no amplitude randomness). The first harmonic amplitude (of fundamental) remains 1.
     H : int
         number of harmonics to return

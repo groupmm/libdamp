@@ -29,7 +29,7 @@ class WhiteNoise(Generator):
         return 2 * torch.rand(shape).to(device) - 1
 
     def update(self):
-        """No-op; `WhiteNoise` is stateless and has no parameters."""
+        """No-op. `WhiteNoise` is stateless and has no parameters."""
 
     def clear(self):
-        """No-op; `WhiteNoise` is stateless and has no internal state to reset."""
+        """No-op. `WhiteNoise` is stateless and has no internal state to reset."""

@@ -12,12 +12,10 @@ import torch
 from libdamp.helpers.freq import timbre2harmonics
 from libdamp.helpers.tensors import ensure_tensor, interpolate_samples, smooth
 
-__all__ = ["SyntheticSinusoidsDataset"]
-
 
 def _create_f0_trajectories(
-    N: int,
-    M: int,
+    num_traj: int,
+    num_frames: int,
     f_base: float | torch.Tensor,
     method: Literal["random_walk", "log_sweep", "lin_sweep", "vibrato", "scale"] = "random_walk",
     rand_range: float = 256,
@@ -35,9 +33,9 @@ def _create_f0_trajectories(
 
     Parameters
     ----------
-    N : int
+    num_traj : int
         Number of trajectories.
-    M : int
+    num_frames : int
         Number of frames.
     f_base : float or torch.Tensor
         Initial frequency of the trajectory in Hz (can be scalar or shape (M,)).
@@ -68,25 +66,25 @@ def _create_f0_trajectories(
     f_base = ensure_tensor(f_base, min_dims=1, throw_larger=True)
 
     if method == "random_walk":
-        f0_ct = smooth(torch.cumsum(torch.rand((N, M), generator=rng) * rand_range - rand_range // 2, axis=-1), rand_smoothing)
+        f0_ct = smooth(torch.cumsum(torch.rand((num_traj, num_frames), generator=rng) * rand_range - rand_range // 2, axis=-1), rand_smoothing)
     elif method == "log_sweep":
-        end_ct = torch.rand((N), generator=rng) * torch.log2(sweep_max_hz / f_base) * 1200
+        end_ct = torch.rand((num_traj), generator=rng) * torch.log2(sweep_max_hz / f_base) * 1200
         # manual version of torch.linspace, since the function does not support tensors as inputs
-        f0_ct = torch.arange(M) / M * end_ct[..., None]
+        f0_ct = torch.arange(num_frames) / num_frames * end_ct[..., None]
     elif method == "lin_sweep":
         # manual version of torch.linspace, since the function does not support tensors as inputs
-        dist_ct = torch.log2(torch.rand((N), generator=rng) * sweep_max_hz / f_base) * 1200
-        f0_ct = torch.arange(M) / M * dist_ct
+        dist_ct = torch.log2(torch.rand((num_traj), generator=rng) * sweep_max_hz / f_base) * 1200
+        f0_ct = torch.arange(num_frames) / num_frames * dist_ct
     elif method == "vibrato":
         vib_rate = ensure_tensor(vib_rate, min_dims=1, throw_larger=True)
         vib_phase = ensure_tensor(vib_phase, min_dims=1, throw_larger=True)
         vib_depth = ensure_tensor(vib_depth, min_dims=1, throw_larger=True)
-        f0_ct = torch.sin(2 * torch.pi * (torch.arange(M) / M * vib_rate[..., None] + vib_phase[..., None]))
+        f0_ct = torch.sin(2 * torch.pi * (torch.arange(num_frames) / num_frames * vib_rate[..., None] + vib_phase[..., None]))
         f0_ct *= vib_depth[..., None]
     elif method == "scale":
-        L = math.ceil(M / scale_step_length)
+        L = math.ceil(num_frames / scale_step_length)
         if scale_direction == "random":
-            f0_ct = torch.cumsum(torch.randint(2, (N, L), generator=rng) * 2 - 1, dim=-1) * scale_step_ct
+            f0_ct = torch.cumsum(torch.randint(2, (num_traj, L), generator=rng) * 2 - 1, dim=-1) * scale_step_ct
             f0_ct = torch.repeat_interleave(f0_ct, scale_step_length, dim=-1)
         elif scale_direction == "up":
             f0_ct = torch.repeat_interleave(torch.arange(L)[None, :] * scale_step_ct, scale_step_length, dim=-1)
@@ -95,7 +93,7 @@ def _create_f0_trajectories(
         else:
             raise ValueError(f"Unknown scale direction '{scale_direction}'.")
 
-        f0_ct = f0_ct[:, :M]
+        f0_ct = f0_ct[:, :num_frames]
     else:
         raise ValueError(f"Unknown F0 trajectory method '{method}'.")
 
@@ -127,7 +125,7 @@ def _adsr(L, attack=0.05, decay=0.05, sustain_amplitude=0.5, release=0.1, w_a=1,
 
 
 def _create_envelope(
-    L: int,
+    num_frames: int,
     shape: Literal["const", "plucked", "fade", "tremolo", "random"] = "const",
     rng: torch.Generator | None = None,
 ) -> torch.Tensor:
@@ -135,7 +133,7 @@ def _create_envelope(
 
     Parameters
     ----------
-    L : int
+    num_frames : int
         Number of frames.
     shape : Literal["const", "plucked", "fade", "tremolo", "random"]
         Shape of the envelope.
@@ -143,22 +141,22 @@ def _create_envelope(
         Random number generator for reproducibility, used for the "random" shape (default: None).
     """
     if shape == "const":
-        return torch.ones(L)
+        return torch.ones(num_frames)
 
     if shape == "plucked":
-        return _adsr(L, attack=0.003, decay=0.3, sustain_amplitude=0, release=0, w_a=2, w_d=5)
+        return _adsr(num_frames, attack=0.003, decay=0.3, sustain_amplitude=0, release=0, w_a=2, w_d=5)
 
     if shape == "fade":
-        return _adsr(L, attack=0.05, decay=0.1, sustain_amplitude=0.5, release=0.7, w_a=1, w_r=3)
+        return _adsr(num_frames, attack=0.05, decay=0.1, sustain_amplitude=0.5, release=0.7, w_a=1, w_r=3)
 
     if shape == "tremolo":
-        return torch.sin(2 * torch.pi * 5 * torch.arange(L) / L) + 1
+        return torch.sin(2 * torch.pi * 5 * torch.arange(num_frames) / num_frames) + 1
 
     if shape == "random":
-        if L > 8:
-            return smooth(torch.rand(L, generator=rng), L // 8)
+        if num_frames > 8:
+            return smooth(torch.rand(num_frames, generator=rng), num_frames // 8)
 
-        return torch.rand(L, generator=rng)
+        return torch.rand(num_frames, generator=rng)
 
     raise ValueError(f"Unknown envelope shape '{shape}'.")
 
@@ -169,11 +167,11 @@ class SyntheticSinusoidsDataset(torch.utils.data.Dataset):
 
     def __init__(
         self,
-        N: int,
-        L: int,
-        M: int,
-        H: int,
-        F: int,
+        num_excerpts: int,
+        len_excerpt: int,
+        num_tones: int,
+        num_harm: int,
+        num_frames: int,
         fs: float,
         amp_min: float = -30,
         amp_max: float = 0,
@@ -190,15 +188,15 @@ class SyntheticSinusoidsDataset(torch.utils.data.Dataset):
 
         Parameters
         ----------
-        N : int
-            Number of examples in the dataset.
-        L : int
-            Length of each example in samples.
-        M : int
+        num_excerpts : int
+            Number of excerpts in the dataset.
+        len_excerpt : int
+            Length of each excerpt in samples.
+        num_tones : int
             Number of independent tones in each example.
-        H : int
+        num_harm : int
             Number of harmonics for each tone.
-        F : int
+        num_frames : int
             Number of frames in which the fundamental frequency (F0) of each example changes.
         fs : float
             Sampling rate in Hz.
@@ -215,7 +213,7 @@ class SyntheticSinusoidsDataset(torch.utils.data.Dataset):
         f0_max : float
             Maximum F0 in Hz.
         f0_distr : Literal["log", "lin"]
-            Distribution from which F0s are drawn; options: "log", "lin".
+            Distribution from which F0s are drawn. Options: "log", "lin".
         randomize_phase : bool
             Whether or not the initial phase of each example should be randomized.
         interp_mode : Literal["const", "center_linear", "end_linear", "half_linear", "const_smooth"]
@@ -230,33 +228,33 @@ class SyntheticSinusoidsDataset(torch.utils.data.Dataset):
         else:
             rng.manual_seed(rng.seed())
 
-        self.N = N
-        self.L = L
+        self.num_excerpts = num_excerpts
+        self.len_excerpt = len_excerpt
         self.fs = fs
         self.interp_mode = interp_mode
 
-        self.ampl_noise = torch.pow(10, (torch.rand((self.N), generator=rng) * (noise_max - noise_min) + noise_min) / 20)
-        self.ampl_glob = torch.pow(10, (torch.rand((self.N), generator=rng) * (amp_max - amp_min) + amp_min) / 20)
+        self.ampl_noise = torch.pow(10, (torch.rand((self.num_excerpts), generator=rng) * (noise_max - noise_min) + noise_min) / 20)
+        self.ampl_glob = torch.pow(10, (torch.rand((self.num_excerpts), generator=rng) * (amp_max - amp_min) + amp_min) / 20)
 
         if randomize_phase:
-            self.phase_init = torch.rand((self.N, M, H), generator=rng) * 2 * torch.pi
+            self.phase_init = torch.rand((self.num_excerpts, num_tones, num_harm), generator=rng) * 2 * torch.pi
         else:
-            self.phase_init = torch.zeros((self.N, M, H))
+            self.phase_init = torch.zeros((self.num_excerpts, num_tones, num_harm))
 
         # these will be filled individually
-        self.f0_traj = torch.zeros((self.N, M, F))
-        self.timbre = torch.zeros((self.N, M, H, 2))
-        self.ampl_traj = torch.ones((self.N, M, F))
+        self.f0_traj = torch.zeros((self.num_excerpts, num_tones, num_frames))
+        self.timbre = torch.zeros((self.num_excerpts, num_tones, num_harm, 2))
+        self.ampl_traj = torch.ones((self.num_excerpts, num_tones, num_frames))
 
         avail_timbres = ["sawtooth", "triangle", "flat", "square", "clarinet-like"]
         avail_f0_trajs = ["random_walk", "log_sweep", "lin_sweep", "vibrato", "scale"]
         avail_envelopes = ["random", "tremolo", "plucked", "fade", "const"]
 
-        for i in range(self.N):
-            for j in range(M):
+        for i in range(self.num_excerpts):
+            for j in range(num_tones):
                 # create timbre
-                if H > 1:
-                    self.timbre[i, j] = timbre2harmonics(avail_timbres[torch.randint(len(avail_timbres), (1,), generator=rng)], H)
+                if num_harm > 1:
+                    self.timbre[i, j] = timbre2harmonics(avail_timbres[torch.randint(len(avail_timbres), (1,), generator=rng)], num_harm)
                 else:
                     self.timbre[i, j] = torch.ones((1, 2))
 
@@ -268,7 +266,7 @@ class SyntheticSinusoidsDataset(torch.utils.data.Dataset):
 
                 self.f0_traj[i, j] = _create_f0_trajectories(
                     1,
-                    F,
+                    num_frames,
                     f_base,
                     method=avail_f0_trajs[torch.randint(len(avail_f0_trajs), (1,), generator=rng)],
                     rand_range=torch.rand(1, generator=rng) * 256 + 32,
@@ -284,9 +282,9 @@ class SyntheticSinusoidsDataset(torch.utils.data.Dataset):
                 )[0]
 
                 # create envelope
-                if F > 1:
+                if num_frames > 1:
                     env = avail_envelopes[torch.randint(len(avail_envelopes), (1,), generator=rng)]
-                    self.ampl_traj[i, j] = _create_envelope(F, env, rng)
+                    self.ampl_traj[i, j] = _create_envelope(num_frames, env, rng)
                     if env in ["random", "tremolo"]:
                         minimum = torch.rand(1, generator=rng) * 0.2 + 0.001
                         scale = torch.rand(1, generator=rng) * (1 - minimum)
@@ -299,20 +297,20 @@ class SyntheticSinusoidsDataset(torch.utils.data.Dataset):
         a_harm = torch.repeat_interleave(harmonics[..., [1]], f.shape[-1], dim=-1)
         a_harm[f > self.fs / 2] = 0  # silence harmonics that are aliasing
 
-        B = self.L // f.shape[-1]
-        assert self.L / f.shape[-1] == B, "Number of samples must be divisible by number of frames."
+        B = self.len_excerpt // f.shape[-1]
+        assert self.len_excerpt / f.shape[-1] == B, "Number of samples must be divisible by number of frames."
 
-        f_inst = interpolate_samples(f, B, mode=self.interp_mode)  # shape: (M, H, L)
+        f_inst = interpolate_samples(f, B, mode=self.interp_mode)  # shape: (num_tones, num_harm, len_excerpt)
         # harmonic amplitudes are frame-wise constant to make sure freqs above Nyquist are removed
-        a_h_inst = interpolate_samples(a_harm, B, mode="const")  # shape: (M, H, L)
+        a_h_inst = interpolate_samples(a_harm, B, mode="const")  # shape: (num_tones, num_harm, len_excerpt)
         # overall amplitude can be interpolated nicely
-        a_inst = interpolate_samples(a_traj[:, None, :], B, mode=self.interp_mode)  # shape: (M, 1, L)
+        a_inst = interpolate_samples(a_traj[:, None, :], B, mode=self.interp_mode)  # shape: (num_tones, 1, len_excerpt)
 
         phi = torch.cumsum(2 * torch.pi * f_inst / self.fs, dim=-1) + iph[:, :, None]
         x = a_inst * a_h_inst * torch.sin(phi)
-        n = a_noise * 2 * (torch.rand(self.L) - 0.5)
+        n = a_noise * 2 * (torch.rand(self.len_excerpt) - 0.5)
 
-        y = x.sum(dim=[0, 1]) + n  # shape: (L)
+        y = x.sum(dim=[0, 1]) + n  # shape: (len_excerpt)
         y_scale = 1 / torch.max(torch.abs(y)) * a_glob
         y *= y_scale
 
@@ -322,7 +320,7 @@ class SyntheticSinusoidsDataset(torch.utils.data.Dataset):
         return y[None, ...], a_scaled, f
 
     def __len__(self):
-        return self.N
+        return self.num_excerpts
 
     def __getitem__(self, idx):
         x, a_scaled, f_harm = self._generate_signal(
