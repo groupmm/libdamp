@@ -1,0 +1,6 @@
+PulseTableExperiment.table_mode = "wave"
+PulseTableExperiment.num_pulses = 2
+
+train/PulseItDataset.path = "../pulse-it/choralebricks/old/train_tp"
+val/PulseItDataset.path = "../pulse-it/choralebricks/old/valid_tp"
+test/PulseItDataset.path = "../pulse-it/choralebricks/old/valid_tp"

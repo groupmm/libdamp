@@ -1,0 +1,6 @@
+PulseTableExperiment.table_mode = "pulse"
+PulseTableExperiment.num_pulses = 16
+
+train/PulseItDataset.path = "../pulse-it/choralebricks/old/train_bar"
+val/PulseItDataset.path = "../pulse-it/choralebricks/old/valid_bar"
+test/PulseItDataset.path = "../pulse-it/choralebricks/old/valid_bar"

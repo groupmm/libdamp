@@ -1,0 +1,46 @@
+# Basic configuration for an experiment, can be overriden in the respective experiment config
+
+# See the following links for reference on the available parameters
+# [1]: https://lightning.ai/docs/pytorch/stable/common/trainer.html#init
+# [2]: https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader
+
+# device settings
+Experiment.accelerator = "auto" # "cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto" [1]
+Experiment.devices = "auto" # can for example be used to limit to one GPU by giving an integer [1]
+
+# training length settings
+Experiment.max_epochs = 100 # [1]
+Experiment.val_check_interval = 1000 # validation check after how many batches? [1]
+Experiment.limit_val_batches = 0.1 # how many batches or what fraction of the validation dataset to use [1]
+Experiment.early_stopping = False # whether to use early stopping when the validation loss did not decrease
+Experiment.early_stopping_patience = 10 # how many validation steps without improvement are needed until stopping
+
+# checkpoint and logging settings
+Experiment.save_path = "./results" # basepath where to save checkpoints and logs of the experiment
+Experiment.name = "experiment_{date}" # {date} will be replaced with a string representing the current date and time
+Experiment.save_best_n_ckpts = 0 # how many of the best checkpoints to save according to validation loss
+Experiment.save_last_epoch_ckpt = True # whether to save the last checkpoint after each epoch
+Experiment.enable_tensorboard = False
+Experiment.enable_mlflow = True
+Experiment.mlflow_tracking_uri = "http://127.0.0.1:5000" # MLflow tracking URI, e.g. "http://localhost:5000" for running local server 
+                                                         # or "sqlite:////path/to/mlflow.db" for saving directly to db file.
+Experiment.log_computational_graph = True # whether to log the computational graph using torchviz and graphviz
+Experiment.enable_audio_logging = True # Whether to allow logging a specific audio example during each epoch. 
+                                       # You still have to call self.log_audio() in the experiment in train_step and/or validation_step, test_step. 
+Experiment.audio_log_batch_idx = 0 # which validation batch index to export
+Experiment.audio_log_item_idx = 0 # which item index in the selected batch to export
+
+# general training settings
+Experiment.accumulate_grad_batches = 1 # can be used to realize virtually larger batch sizes on smaller machines [1]
+Experiment.batch_size = 16 # [2]
+Experiment.shuffle_data = False # whether or not to shuffle data after each epoch [2]
+Experiment.gradient_clip_val = None # can be used to clip gradients by norm during training [1]
+
+# dev settings
+Experiment.fast_dev_run = False # optionally run a single batch of train/validation/test, e.g. to test locally [1]
+Experiment.profiler = None # run profiling on the training (None, "simple", or "advanced") [1]
+
+# load weights from a previous training
+Experiment.load_checkpoint_weights = None # give full path to a checkpoint
+# load weights and all other settings from a previous training
+Experiment.full_initial_checkpoint = None # give full path to a checkpoint

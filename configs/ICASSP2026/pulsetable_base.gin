@@ -1,0 +1,69 @@
+include 'configs/base.gin'
+
+########
+# override defaults of Experiment
+########
+Experiment.name="icassp2026_{date}"
+Experiment.early_stopping = False
+Experiment.early_stopping_patience = 20
+Experiment.save_best_n_ckpts = 1
+Experiment.max_epochs = 40
+Experiment.batch_size = 32
+Experiment.limit_val_batches = 1.0
+Experiment.shuffle_data = True
+
+sampling_rate = 48000.
+frame_len = 128
+num_excerpts = 500 # per item
+num_frames = 1500 # -> 4 seconds
+
+########
+# load and configure a specific experiment
+########
+import experiments.pulsetable_synth
+
+libdamp.experiment = @PulseTableExperiment()
+
+PulseTableExperiment.fs = %sampling_rate
+PulseTableExperiment.N = %frame_len
+PulseTableExperiment.learning_rate = 1e-3
+
+PulseTableExperiment.pulse_init = "quadratic_decay"
+PulseTableExperiment.L_proto = 64
+PulseTableExperiment.mask_pulses = False
+
+PulseTableExperiment.learn_gain = True
+PulseTableExperiment.learn_noise = True
+PulseTableExperiment.learn_post_filter = True
+PulseTableExperiment.learn_freq_offset = False
+
+PulseTableExperiment.model_size_weights = 48
+PulseTableExperiment.model_size_gain = 32
+PulseTableExperiment.model_size_freq = 32
+PulseTableExperiment.model_size_noise = 48
+
+PulseTableExperiment.envelope_oversampling = 1
+
+PulseTableExperiment.w_entropy = 1
+PulseTableExperiment.w_sparsity = 0.005
+
+PulseTableExperiment.loss_fn = @MSSLoss()
+MSSLoss.w_mag = 10.0
+MSSLoss.w_log = 0.0
+MSSLoss.w_mlog = 5.0
+MSSLoss.mgamma = 10.0
+MSSLoss.p = 1
+MSSLoss.fft_sizes = (4096, 2048, 1024, 512, 64)
+MSSLoss.win = "flattop"
+
+
+########
+# load and configure datasets for train/val/test
+########
+torchdsp.train_dataset = @train/PulseItDataset()
+torchdsp.val_dataset = @val/PulseItDataset()
+torchdsp.test_dataset = @test/PulseItDataset()
+
+PulseItDataset.M = %num_excerpts
+PulseItDataset.H = %frame_len
+PulseItDataset.L = %num_frames
