@@ -3,11 +3,16 @@
 """Run an experiment with libdamp."""
 
 import argparse
+import sys
+from pathlib import Path
 
 import gin
 import lightning.pytorch as pl
 import mlflow
 import torch
+
+# make experiments directly discoverable from gin imports
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import libdamp  # noqa: F401 - imported for the side effect of registering gin-configurable classes
 

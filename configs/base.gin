@@ -21,12 +21,11 @@ Experiment.name = "experiment_{date}" # {date} will be replaced with a string re
 Experiment.save_best_n_ckpts = 0 # how many of the best checkpoints to save according to validation loss
 Experiment.save_last_epoch_ckpt = True # whether to save the last checkpoint after each epoch
 Experiment.enable_tensorboard = False
-Experiment.enable_mlflow = True
+Experiment.enable_mlflow = False
 Experiment.mlflow_tracking_uri = "http://127.0.0.1:5000" # MLflow tracking URI, e.g. "http://localhost:5000" for running local server 
                                                          # or "sqlite:////path/to/mlflow.db" for saving directly to db file.
-Experiment.log_computational_graph = True # whether to log the computational graph using torchviz and graphviz
-Experiment.enable_audio_logging = True # Whether to allow logging a specific audio example during each epoch. 
-                                       # You still have to call self.log_audio() in the experiment in train_step and/or validation_step, test_step. 
+Experiment.enable_audio_logging = False # Whether to allow logging a specific audio example during each epoch.
+                                        # You still have to call self.log_audio() in the experiment in train_step and/or validation_step, test_step.
 Experiment.audio_log_batch_idx = 0 # which validation batch index to export
 Experiment.audio_log_item_idx = 0 # which item index in the selected batch to export
 

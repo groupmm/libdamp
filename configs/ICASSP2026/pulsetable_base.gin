@@ -20,7 +20,7 @@ num_frames = 1500 # -> 4 seconds
 ########
 # load and configure a specific experiment
 ########
-import experiments.pulsetable_synth
+import experiments.ICASSP2026.pulsetable_synth
 
 libdamp.experiment = @PulseTableExperiment()
 
@@ -60,10 +60,10 @@ MSSLoss.win = "flattop"
 ########
 # load and configure datasets for train/val/test
 ########
-torchdsp.train_dataset = @train/PulseItDataset()
-torchdsp.val_dataset = @val/PulseItDataset()
-torchdsp.test_dataset = @test/PulseItDataset()
+libdamp.train_dataset = @train/PulseItDataset()
+libdamp.val_dataset = @val/PulseItDataset()
+libdamp.test_dataset = @test/PulseItDataset()
 
-PulseItDataset.M = %num_excerpts
-PulseItDataset.H = %frame_len
-PulseItDataset.L = %num_frames
+PulseItDataset.num_excerpts = %num_excerpts
+PulseItDataset.frame_len = %frame_len
+PulseItDataset.num_frames = %num_frames

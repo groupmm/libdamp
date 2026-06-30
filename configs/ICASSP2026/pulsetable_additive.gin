@@ -20,9 +20,9 @@ num_frames = 1500 # -> 4 seconds
 ########
 # load and configure a specific experiment
 ########
-import experiments.pulsetable_additive_baseline.py
+import experiments.ICASSP2026.pulsetable_additive_baseline
 
-torchdsp.experiment = @AdditivePulseTableExperiment()
+libdamp.experiment = @AdditivePulseTableExperiment()
 
 AdditivePulseTableExperiment.fs = %sampling_rate
 AdditivePulseTableExperiment.N = %frame_len
@@ -58,9 +58,9 @@ MSSLoss.win = "flattop"
 ########
 # load and configure datasets for train/val/test
 ########
-torchdsp.train_dataset = @train/PulseItDataset()
-torchdsp.val_dataset = @val/PulseItDataset()
-torchdsp.test_dataset = @test/PulseItDataset()
+libdamp.train_dataset = @train/PulseItDataset()
+libdamp.val_dataset = @val/PulseItDataset()
+libdamp.test_dataset = @test/PulseItDataset()
 
 PulseItDataset.M = %num_excerpts
 PulseItDataset.H = %frame_len
