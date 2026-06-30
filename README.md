@@ -1,4 +1,4 @@
-<p align="center">
+<p align="right">
   <img src="libdamp_logo.png" alt="libdamp logo" width="300">
 </p>
 
@@ -51,6 +51,8 @@ import libdamp
 experiment = libdamp.Experiment(...)
 ```
 
+A full documentation is available (TODO).
+
 See the [`configs`](configs) and [`experiments`](experiments) directories for example experiment configurations, and [`scripts`](scripts) for entry points used to run them.
 
 ## Project structure
@@ -59,9 +61,10 @@ See the [`configs`](configs) and [`experiments`](experiments) directories for ex
 libdamp/        # library source code (datasets, models, losses, helpers, ...)
 configs/        # gin config files for experiments
 docs/           # Sphinx documentation sources
-experiments/    # experiment definitions
+experiments/    # Experiment definitions
 scripts/        # CLI entry points for running experiments
-test/           # test suite
+test/           # unit tests
+notebooks/      # Jupyter notebooks with examples and explanations of the algorithms
 ```
 
 ## Development
@@ -74,14 +77,14 @@ uv run pytest
 
 ### Code style and consistency
 
-This project uses [ruff](https://docs.astral.sh/ruff/) for linting and formatting. Check the repository with:
+This project uses [ruff](https://docs.astral.sh/ruff/) for linting and formatting. Check the repository with (after syncing the `develop` extra):
 
 ```
 uv run ruff check .
 uv run ruff format --check .
 ```
 
-If you want to run these checks automatically on commit, install the pre-commit hook (after syncing the `develop` extra):
+If you want to run these checks automatically on commit, install the pre-commit hook:
 
 ```
 uv run pre-commit install
@@ -89,7 +92,7 @@ uv run pre-commit install
 
 ### Building the documentation
 
-The API documentation is built with [Sphinx](https://www.sphinx-doc.org/) from the docstrings in [`libdamp`](libdamp) and the sources in [`docs`](docs). After syncing the `doc` extra (see [Installation](#installation)), build the HTML docs with:
+The API documentation is built with [Sphinx](https://www.sphinx-doc.org/) from the docstrings in [`libdamp`](libdamp) and the sources in [`docs`](docs). After syncing the `doc` extra (see [Installation](#installation)), build the HTML docs with (after syncing the `docs` extra):
 
 ```
 uv run make -C docs html
@@ -103,7 +106,7 @@ Contributions are welcome! Please open an issue to discuss any significant chang
 
 ## Citation
 
-If you use `libdamp` in your research, please cite this repository or a closely related research paper:
+If you use `libdamp` in your research, please cite this research paper the code is accompanying:
 
 ```
 @inproceedings{SchwaerDBM26_DiffPulse_ICASSP,
