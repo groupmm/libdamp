@@ -18,8 +18,8 @@ class ImpulseTrain(Generator):
 
     def __init__(
         self,
-        N: int,
-        M: int,
+        frame_len: int,
+        num_harm: int,
         fs: float,
         sum_up: bool = True,
         interp_f: Literal["const", "center_linear", "end_linear", "half_linear", "const_smooth"] = "const",
@@ -30,9 +30,9 @@ class ImpulseTrain(Generator):
 
         Parameters
         ----------
-        N : int
+        frame_len : int
             Number of samples per frame.
-        M : int
+        num_harm : int
             Maximum number of harmonics.
         fs : float
             Sampling rate in Hz.
@@ -46,8 +46,8 @@ class ImpulseTrain(Generator):
         super().__init__()
 
         self.sum_up = sum_up
-        self.osc = SinusoidalOsc(N, fs, interp_f, interp_a="const")
-        self.timbre = timbre2harmonics("flat", M)
+        self.osc = SinusoidalOsc(frame_len, fs, interp_f, interp_a="const")
+        self.timbre = timbre2harmonics("flat", num_harm)
 
     def generate(self):
         x = self.osc.generate(sum_up=self.sum_up)

@@ -11,7 +11,7 @@ from ..helpers.tensors import ensure_tensor, interpolate_samples
 from .processor import Processor
 
 
-class Envelope(Processor):
+class GainEnvelope(Processor):
     """Multiply audio with a prescribed gain envelope"""
 
     def __init__(

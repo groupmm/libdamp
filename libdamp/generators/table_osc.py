@@ -18,7 +18,7 @@ class TableOsc(Generator):
 
     def __init__(
         self,
-        N: int,
+        frame_len: int,
         table,
         table_param,
         fs: float,
@@ -35,7 +35,7 @@ class TableOsc(Generator):
 
         Parameters
         ----------
-        N : int
+        frame_len : int
             Number of samples per frame.
         table : tensor or tensor-like
             Lookup table with shape (M, L) or (B, M, L), where B is the (optional) batch size,
@@ -74,7 +74,7 @@ class TableOsc(Generator):
         self.interp_ts = interp_ts
         self.interp_entry = interp_entry
 
-        self.N = N  # number of samples per frame
+        self.frame_len = frame_len  # number of samples per frame
 
         table_param = ensure_tensor(table_param, dtype=torch.float32)
 
@@ -82,7 +82,7 @@ class TableOsc(Generator):
             # add batch dimension
             table = table[None, :]
 
-        _, self.M, self.L = table.shape  # (number of entries, length of each entry in samples)
+        _, self.num_entries, self.entry_len = table.shape  # (number of entries, length of each entry in samples)
 
         # sort entries by pitch (ascending)
         sorting = torch.argsort(table_param)
@@ -93,7 +93,7 @@ class TableOsc(Generator):
             pw_freq = ensure_tensor(table_freq, dtype=torch.float32)[sorting]
         else:
             self.fixed_table_freq = True
-            pw_freq = torch.Tensor([self.fs / self.L])  # assuming one period in the wavetable
+            pw_freq = torch.Tensor([self.fs / self.entry_len])  # assuming one period in the wavetable
 
         # optional normalization
         if normalize == "power":
@@ -136,7 +136,7 @@ class TableOsc(Generator):
         B, F = self.f0.shape  # batch size, number of frames
 
         # calculate instantaneous F0 for each sample
-        f0_inst = interpolate_samples(self.f0.unsqueeze(1), self.N, mode=self.interp_f0, prev_val=self.prev_f0)
+        f0_inst = interpolate_samples(self.f0.unsqueeze(1), self.frame_len, mode=self.interp_f0, prev_val=self.prev_f0)
         self.prev_f0 = f0_inst[..., -1]
         f0_inst = f0_inst.squeeze(1)
 
@@ -145,13 +145,13 @@ class TableOsc(Generator):
             # if F0 is constant per frame, we only need a frame-wise selection of the table entries
             ts_inst = self.ts
         else:
-            ts_inst = interpolate_samples(self.ts.unsqueeze(1), self.N, mode=self.interp_ts, prev_val=self.prev_ts)
+            ts_inst = interpolate_samples(self.ts.unsqueeze(1), self.frame_len, mode=self.interp_ts, prev_val=self.prev_ts)
             self.prev_ts = ts_inst[..., -1]
             ts_inst = ts_inst.squeeze(1)
 
         upper_bound = torch.searchsorted(self.pw_param, ts_inst, side="right")
         # for pitches out of bounds, just use the boundary entry
-        upper_bound[(upper_bound >= self.M)] = self.M - 1
+        upper_bound[(upper_bound >= self.num_entries)] = self.num_entries - 1
 
         # also find lower bound and weightings if we interpolate between the entries
         if self.interp_entry:
@@ -182,13 +182,13 @@ class TableOsc(Generator):
                 else:
                     read_freq = self.pw_freq[upper_bound]
                 increment = f0_inst / read_freq
-            read_sample = incremental_mod(torch.ones_like(increment) * self.L, increment)
+            read_sample = incremental_mod(torch.ones_like(increment) * self.entry_len, increment)
 
         # create a table sampling grid with shape (B, N*F, 1, 2)
         # with time and phase axis in range [-1, 1]
-        ph_inst_scaled = read_sample / self.L * 2 - 1
-        t_inst_scaled = torch.arange(F * self.N, device=ph_inst_scaled.device, dtype=ph_inst_scaled.dtype)[None, :].broadcast_to(B, -1)
-        t_inst_scaled = t_inst_scaled / (F * self.N) * 2 - 1
+        ph_inst_scaled = read_sample / self.entry_len * 2 - 1
+        t_inst_scaled = torch.arange(F * self.frame_len, device=ph_inst_scaled.device, dtype=ph_inst_scaled.dtype)[None, :].broadcast_to(B, -1)
+        t_inst_scaled = t_inst_scaled / (F * self.frame_len) * 2 - 1
         sampling_grid = torch.stack([ph_inst_scaled, t_inst_scaled], dim=2).unsqueeze(2)
 
         table = self.pw_table
@@ -226,8 +226,8 @@ class TableOsc(Generator):
             ).squeeze([1, 3])
 
             if self.interp_ts == "const":
-                lower_weight = interpolate_samples(lower_weight, self.N, mode="const")
-                upper_weight = interpolate_samples(upper_weight, self.N, mode="const")
+                lower_weight = interpolate_samples(lower_weight, self.frame_len, mode="const")
+                upper_weight = interpolate_samples(upper_weight, self.frame_len, mode="const")
 
             y = lower_weight * y_lower + upper_weight * y_upper
         else:

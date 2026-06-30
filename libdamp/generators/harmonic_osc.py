@@ -17,7 +17,7 @@ class HarmonicOsc(Generator):
 
     def __init__(
         self,
-        N: int,
+        frame_len: int,
         fs: float,
         sum_up: bool = True,
         interp_f: Literal["const", "center_linear", "end_linear", "half_linear", "const_smooth"] = "const",
@@ -29,7 +29,7 @@ class HarmonicOsc(Generator):
 
         Parameters
         ----------
-        N : int
+        frame_len : int
             Number of samples per frame.
         fs : float
             Sampling rate in Hz.
@@ -45,7 +45,7 @@ class HarmonicOsc(Generator):
         """
         super().__init__()
 
-        self.osc = SinusoidalOsc(N, fs, interp_f, interp_a)
+        self.osc = SinusoidalOsc(frame_len, fs, interp_f, interp_a)
 
     def generate(self) -> torch.Tensor:
         """Generate audio from the current harmonic parameters.

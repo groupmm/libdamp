@@ -13,7 +13,7 @@ from .generator import Generator
 class BandFilteredNoise(Generator):
     """Generator for band-filtered white noise"""
 
-    def __init__(self, L: int, N: int, order: int, fs: float) -> None:
+    def __init__(self, frame_len: int, num_bands: int, order: int, fs: float) -> None:
         """Generator for band-filtered white noise.
 
         This generator can produce multiple bands simultaneously with variable
@@ -21,9 +21,9 @@ class BandFilteredNoise(Generator):
 
         Parameters
         ----------
-        L : int
+        frame_len : int
             Length of each frame in samples.
-        N : int
+        num_bands : int
             Number of bands that are added before being returned.
         order : int
             IIR bandpass filter order.
@@ -32,8 +32,8 @@ class BandFilteredNoise(Generator):
         """
         super().__init__()
 
-        self.L = L
-        self.N = N
+        self.frame_len = frame_len
+        self.num_bands = num_bands
         self.order = order
         self.fs = fs
 
@@ -56,11 +56,11 @@ class BandFilteredNoise(Generator):
         torch.Tensor
             Generated filtered noise signal consisting of summed-up noise bands, shape (B, frames * L).
         """
-        self.B, self.F, N_ = fc.shape
+        self.B, self.F, N = fc.shape
         self.dtype = fc.dtype
         self.device = fc.device
 
-        assert N_ == self.N, "Wrong number of bands given in input to BandFilteredNoise."
+        assert self.num_bands == N, "Wrong number of bands given in input to BandFilteredNoise."
 
         self.b, self.a = design_butter_bandpass(fc, bw, self.fs, order=self.order)
         self.ba = ba
@@ -81,16 +81,16 @@ class BandFilteredNoise(Generator):
         """
         assert self.b is not None, "Not initialized."
 
-        ba_inst = interpolate_samples(self.ba.transpose(-1, -2), self.L, mode="const").transpose(-1, -2)
+        ba_inst = interpolate_samples(self.ba.transpose(-1, -2), self.frame_len, mode="const").transpose(-1, -2)
 
         # same device and dtype as fc
-        x = 2 * torch.rand((self.B * self.N, self.F * self.L)).to(device=self.device, dtype=self.dtype) - 1
+        x = 2 * torch.rand((self.B * self.num_bands, self.F * self.frame_len)).to(device=self.device, dtype=self.dtype) - 1
 
         # iir_freq_sampling supports only one batch dimension so we concatenate the bands and batch dim
-        b = self.b.transpose(2, 1).view(self.B * self.N, self.F, -1)
-        a = self.a.transpose(2, 1).view(self.B * self.N, self.F, -1)
-        y = iir_freq_sampling(b, a, x, N=self.L)
-        y = y.view(self.B, self.N, self.F * self.L)
+        b = self.b.transpose(2, 1).view(self.B * self.num_bands, self.F, -1)
+        a = self.a.transpose(2, 1).view(self.B * self.num_bands, self.F, -1)
+        y = iir_freq_sampling(b, a, x, N=self.frame_len)
+        y = y.view(self.B, self.num_bands, self.F * self.frame_len)
 
         y = ba_inst.transpose(-2, -1) * y  # apply gain
 

@@ -17,9 +17,9 @@ class FMSynth(Generator):
 
     def __init__(
         self,
-        N: int,
+        frame_len: int,
         fs: float,
-        P: int,
+        num_ops: int,
         connections: list[tuple[int, int]],
         interp_f0: Literal["const", "center_linear", "end_linear", "half_linear", "const_smooth"] = "const",
         interp_r: Literal["const", "center_linear", "end_linear", "half_linear", "const_smooth"] = "const",
@@ -29,11 +29,11 @@ class FMSynth(Generator):
 
         Parameters
         ----------
-        N : int
+        frame_len : int
             number of samples per frame
         fs : float
             sampling rate in Hz
-        P : int
+        num_ops : int
             number of operators
         connections : List[Tuple[int, int]]
             list of connections, given as integer tuples (src, dst) (i.e., edges of a directed graph)
@@ -48,13 +48,13 @@ class FMSynth(Generator):
             For options, see `helpers.tensors.interpolate_samples` (default: "const")
         """
         super().__init__()
-        self.N = N
+        self.frame_len = frame_len
         self.fs = fs
         self.interp_f0 = interp_f0
         self.interp_r = interp_r
         self.interp_m = interp_m
 
-        assert len(connections) >= P - 1, f"At least {P - 1} connections required when using {P} operators."
+        assert len(connections) >= num_ops - 1, f"At least {num_ops - 1} connections required when using {num_ops} operators."
 
         # in the following, we use Kahn's algorithm to determine in which order the operators are processed
         # the goal is to find a processing order and store which operator outputs feed into each operator's
@@ -65,7 +65,7 @@ class FMSynth(Generator):
         # 1. create empty in/out degree counters
         in_deg = {}
         out_deg = {}
-        for p in range(P):
+        for p in range(num_ops):
             in_deg[p] = 0
             out_deg[p] = 0
 
@@ -82,12 +82,12 @@ class FMSynth(Generator):
             in_deg[dst] += 1
             out_deg[src] += 1
 
-        for p in range(1, P):
+        for p in range(1, num_ops):
             assert out_deg[p] >= 1, f"Operator {p} is not connected."
 
         # 3. add root nodes to a FIFO queue
         queue = deque()
-        for p in range(P):
+        for p in range(num_ops):
             if in_deg[p] == 0:
                 queue.append(p)
 
@@ -107,9 +107,9 @@ class FMSynth(Generator):
     def generate(self):
         assert self.initialized, "update() must be called at least once before generate()"
 
-        f0_inst = interpolate_samples(self.f0.unsqueeze(1), self.N, mode=self.interp_f0, prev_val=self.prev_f0)[:, 0, :]
-        r_inst = interpolate_samples(self.r, self.N, mode=self.interp_r, prev_val=self.prev_r)
-        m_inst = interpolate_samples(self.m, self.N, mode=self.interp_m, prev_val=self.prev_m)
+        f0_inst = interpolate_samples(self.f0.unsqueeze(1), self.frame_len, mode=self.interp_f0, prev_val=self.prev_f0)[:, 0, :]
+        r_inst = interpolate_samples(self.r, self.frame_len, mode=self.interp_r, prev_val=self.prev_r)
+        m_inst = interpolate_samples(self.m, self.frame_len, mode=self.interp_m, prev_val=self.prev_m)
 
         # save state for next call
         self.prev_f0 = f0_inst[:, -1]

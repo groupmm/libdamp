@@ -1,7 +1,7 @@
 libdamp
 =======
 
-Framework for experiments with **D**\ ifferentiable **A**\ udio and **M**\ usic **P**\ rocessing (DDSP) in PyTorch.
+Framework for experiments with **D**\ ifferentiable **A**\ udio and **M**\ usic **P**\ rocessing in PyTorch.
 
 Goals
 -----
@@ -33,7 +33,7 @@ Architecture
 the supporting code needed to train models built from them:
 
 - :mod:`libdamp.generators` produce a new audio signal from given control parameters such as frequency or amplitude trajectories (e.g. :class:`~libdamp.generators.SinusoidalOsc`, :class:`~libdamp.generators.HarmonicOsc`, :class:`~libdamp.generators.TableOsc`).
-- :mod:`libdamp.processors` modify an existing audio signal according to control parameters (e.g. :class:`~libdamp.processors.Envelope`, :class:`~libdamp.processors.LowPassFilter`).
+- :mod:`libdamp.processors` modify an existing audio signal according to control parameters (e.g. :class:`~libdamp.processors.GainEnvelope`, :class:`~libdamp.processors.ButterworthLowPassFilter`).
 
 Both provide a similar interface: ``update()`` sets new control parameters, ``generate()`` (for :mod:`libdamp.generators`) or
 ``process()`` (for :mod:`libdamp.processors`) produces the next chunk of audio, and ``clear()`` resets internal state.

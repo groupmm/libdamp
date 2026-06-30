@@ -16,7 +16,7 @@ class SinusoidalOsc(Generator):
 
     def __init__(
         self,
-        N: int,
+        frame_len: int,
         fs: float,
         interp_f: Literal["const", "center_linear", "end_linear", "half_linear", "const_smooth"] = "const",
         interp_a: Literal["const", "center_linear", "end_linear", "half_linear", "const_smooth"] = "const",
@@ -25,7 +25,7 @@ class SinusoidalOsc(Generator):
 
         Parameters
         ----------
-        N : int
+        frame_len : int
             Number of samples per frame.
         fs : float
             Sampling rate in Hz.
@@ -38,7 +38,7 @@ class SinusoidalOsc(Generator):
         """
         super().__init__()
 
-        self.N = N
+        self.frame_len = frame_len
         self.fs = fs
         self.interp_f = interp_f
         self.interp_a = interp_a
@@ -62,8 +62,8 @@ class SinusoidalOsc(Generator):
         """
         assert self.initialized, "update() must be called at least once before generate()"
 
-        f_inst = interpolate_samples(self.f, self.N, mode=self.interp_f, prev_val=self.prev_f)
-        a_inst = interpolate_samples(self.a, self.N, mode=self.interp_a, prev_val=self.prev_a)
+        f_inst = interpolate_samples(self.f, self.frame_len, mode=self.interp_f, prev_val=self.prev_f)
+        a_inst = interpolate_samples(self.a, self.frame_len, mode=self.interp_a, prev_val=self.prev_a)
 
         # remove all components above Nyquist frequency from the synthesis
         a_inst[(f_inst >= self.fs / 2)] = 0

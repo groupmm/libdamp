@@ -1,4 +1,4 @@
-"""Parallel formant filter processor.
+"""Parallel resonant filter processor.
 
 This module is part of the libdamp package.
 """
@@ -9,11 +9,11 @@ from ..helpers.filters import design_resonant_filter, iir_freq_sampling
 from .processor import Processor
 
 
-class FormantFilters(Processor):
-    """Parallel processing with biquad filters that represent individual formants"""
+class ResonantFilter(Processor):
+    """Parallel processing with biquad filters that represent individual resonances (or "formants")"""
 
     def __init__(self, N: int, fs: float) -> None:
-        """Initialize formant filter processor.
+        """Initialize resonant filter processor.
 
         Parameters
         ----------
@@ -30,7 +30,7 @@ class FormantFilters(Processor):
         self.clear()  # reset state
 
     def process(self, x: torch.Tensor) -> torch.Tensor:
-        """Process audio with the parallel formant filters.
+        """Process audio with the parallel resonant filters.
 
         Parameters
         ----------
@@ -64,7 +64,7 @@ class FormantFilters(Processor):
         return y
 
     def update(self, f, r):
-        """Update the formant filter parameters.
+        """Update the resonant filter parameters.
 
         Parameters
         ----------

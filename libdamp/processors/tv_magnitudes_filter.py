@@ -13,7 +13,7 @@ from .tv_fir_filter import TVFIRFilter
 
 
 class TVMagnitudesFilter(TVFIRFilter):
-    """Time-varying FIR filter processor based on magnitude response.
+    """Time-varying FIR filter processor based on a given magnitude response.
 
     Applies blockwise processing of audio with time-varying FIR filters defined
     by magnitude specifications using `design_fir_filter`. This is a specialization of
@@ -24,8 +24,8 @@ class TVMagnitudesFilter(TVFIRFilter):
 
     def __init__(
         self,
-        N: int,
-        M: int,
+        frame_len: int,
+        filt_len: int,
         fs: float,
         center_freqs: torch.Tensor = OCTAVE_BANDS,
         with_crossfade: bool = False,
@@ -36,9 +36,9 @@ class TVMagnitudesFilter(TVFIRFilter):
 
         Parameters
         ----------
-        N : int
+        frame_len : int
             Frame length in samples.
-        M : int
+        filt_len : int
             Filter length in samples.
         fs : float
             Sampling rate in Hz.
@@ -59,7 +59,7 @@ class TVMagnitudesFilter(TVFIRFilter):
         -----
         Currently only supports (B, 1, L) and (B, L) input tensors.
         """
-        super().__init__(N, M, with_crossfade, crossfade_len)
+        super().__init__(frame_len, filt_len, with_crossfade, crossfade_len)
 
         self.fs = fs
         self.filter_phase = filter_phase
@@ -79,5 +79,5 @@ class TVMagnitudesFilter(TVFIRFilter):
         magnitudes = ensure_tensor(magnitudes, min_dims=2)
         assert magnitudes.shape[-1] == self.center_freqs.shape[-1], "Number of frequency bands must match."
 
-        h = design_fir_filter(self.center_freqs, magnitudes, self.fs, self.M, phase=self.filter_phase)
+        h = design_fir_filter(self.center_freqs, magnitudes, self.fs, self.filt_len, phase=self.filter_phase)
         super().update(h)

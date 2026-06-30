@@ -13,7 +13,7 @@ from .generator import Generator
 class SimpleFilteredNoise(Generator):
     """Generator for simple filtered white noise with linear filters."""
 
-    def __init__(self, L: int, N: int, fs: float, freq_bands) -> None:
+    def __init__(self, frame_len: int, filt_len: int, fs: float, freq_bands) -> None:
         """Generator for simple filtered white noise with linear filters.
 
         Uses filtering in frequency domain and subsequent overlap-add (OLA) in time domain.
@@ -22,9 +22,9 @@ class SimpleFilteredNoise(Generator):
 
         Parameters
         ----------
-        L : int
+        frame_len : int
             Length of each frame in samples.
-        N : int
+        filt_len : int
             FIR filter length in samples, which also defines the filtered block length.
         fs : float
             Sampling rate in Hz.
@@ -33,14 +33,14 @@ class SimpleFilteredNoise(Generator):
         """
         super().__init__()
 
-        self.L = L
-        self.N = N
+        self.frame_len = frame_len
+        self.filt_len = filt_len
 
         freq_bands = ensure_tensor(freq_bands)
 
-        self.register_buffer("filter_win", get_window("hann", self.N))
+        self.register_buffer("filter_win", get_window("hann", self.filt_len))
         self.register_buffer("freq_bands", freq_bands)
-        self.register_buffer("f_fft", torch.fft.rfftfreq(self.N, 1 / fs))
+        self.register_buffer("f_fft", torch.fft.rfftfreq(self.filt_len, 1 / fs))
 
     def generate(self, mags: torch.Tensor) -> torch.Tensor:
         """Generate filtered white noise with specified magnitude response.
@@ -64,20 +64,20 @@ class SimpleFilteredNoise(Generator):
         h = h.roll(K - 1, -1)
         h *= self.filter_win[None, None, :]
 
-        h_pad = torch.nn.functional.pad(h, (0, self.L))
+        h_pad = torch.nn.functional.pad(h, (0, self.frame_len))
         H_pad = torch.fft.rfft(h_pad)
 
-        n = torch.rand((B, F, self.L)).to(h) * 2 - 1
-        n_pad = torch.nn.functional.pad(n, (0, self.N))
+        n = torch.rand((B, F, self.frame_len)).to(h) * 2 - 1
+        n_pad = torch.nn.functional.pad(n, (0, self.filt_len))
         N_pad = torch.fft.rfft(n_pad)
 
         Y = H_pad * N_pad
         y = torch.fft.irfft(Y)
 
         ola = torch.eye(y.shape[-1], requires_grad=False).unsqueeze(1).to(h)
-        y = torch.nn.functional.conv_transpose1d(y.transpose(1, 2), ola, stride=self.L, padding=0).squeeze(1)
+        y = torch.nn.functional.conv_transpose1d(y.transpose(1, 2), ola, stride=self.frame_len, padding=0).squeeze(1)
 
-        return y[..., : self.L * F]
+        return y[..., : self.frame_len * F]
 
     def update(self):
         """No-op. `SimpleFilteredNoise` is stateless and all parameters are passed directly to `generate()`."""

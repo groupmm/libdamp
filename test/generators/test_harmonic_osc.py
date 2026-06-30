@@ -7,7 +7,7 @@ from libdamp.generators.harmonic_osc import HarmonicOsc
 
 class TestHarmonicOsc:
     def test_output_shape(self):
-        osc = HarmonicOsc(N=64, fs=16000.0)
+        osc = HarmonicOsc(frame_len=64, fs=16000.0)
         osc.update(f0=torch.full((2, 4), 110.0), a=torch.ones(2, 3, 4))
         out = osc.generate()
         assert out.shape == (2, 64 * 4)
@@ -16,7 +16,7 @@ class TestHarmonicOsc:
         fs = 16000.0
         N = 256
         f0 = 100.0
-        osc = HarmonicOsc(N=N, fs=fs)
+        osc = HarmonicOsc(frame_len=N, fs=fs)
 
         a = torch.zeros(1, 3, 2)
         a[:, 0, :] = 1.0
@@ -31,8 +31,8 @@ class TestHarmonicOsc:
         fs = 16000.0
         N = 256
         f0 = 100.0
-        osc_harm = HarmonicOsc(N=N, fs=fs)
-        osc_inharm = HarmonicOsc(N=N, fs=fs)
+        osc_harm = HarmonicOsc(frame_len=N, fs=fs)
+        osc_inharm = HarmonicOsc(frame_len=N, fs=fs)
 
         a = torch.ones(1, 2, 2)
         osc_harm.update(f0=torch.full((1, 2), f0), a=a)
@@ -46,7 +46,7 @@ class TestHarmonicOsc:
         assert not torch.allclose(x_harm, x_inharm)
 
     def test_clear_delegates_to_underlying_oscillator(self):
-        osc = HarmonicOsc(N=64, fs=16000.0)
+        osc = HarmonicOsc(frame_len=64, fs=16000.0)
         osc.update(f0=torch.full((1, 2), 110.0), a=torch.ones(1, 1, 2))
         osc.generate()
         osc.clear()

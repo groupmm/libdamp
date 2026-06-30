@@ -26,14 +26,14 @@ _MODULES_WITH_ALL = [m for m in _MODULES if hasattr(m, "__all__")]
 
 
 def test_found_modules_with_all():
-    # `__all__` is only defined at the "public surface" layer (each subpackage's own
-    # `__init__.py`, plus the flat `api.py`), not in individual implementation modules - so this
-    # checks the exact expected set rather than just a loose lower bound, both as a sanity check
-    # that this test is exercising something, and as a guard against `__all__` creeping back into
-    # an implementation module by accident.
+    # `__all__` is only defined at the "public surface" layer (the top-level `libdamp` package
+    # itself, plus each subpackage's own `__init__.py`), not in individual implementation
+    # modules - so this checks the exact expected set rather than just a loose lower bound, both
+    # as a sanity check that this test is exercising something, and as a guard against `__all__`
+    # creeping back into an implementation module by accident.
     names = {m.__name__ for m in _MODULES_WITH_ALL}
     assert names == {
-        "libdamp.api",
+        "libdamp",
         "libdamp.augment",
         "libdamp.datasets",
         "libdamp.generators",
@@ -51,7 +51,6 @@ def test_every_module_was_collected():
     names = {m.__name__ for m in _MODULES}
     for expected in [
         "libdamp",
-        "libdamp.api",
         "libdamp.augment",
         "libdamp.datasets",
         "libdamp.generators",
@@ -64,8 +63,7 @@ def test_every_module_was_collected():
 
 
 def test_all_entries_resolve():
-    """Every name listed in a module's `__all__` must actually exist on that module.
-    """
+    """Every name listed in a module's `__all__` must actually exist on that module."""
     failures = []
     for module in _MODULES_WITH_ALL:
         for name in module.__all__:

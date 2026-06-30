@@ -24,7 +24,7 @@ Lightning hooks (``forward()``, ``training_step()``, ``validation_step()``, ``co
             super().__init__(**kwargs)
             self.fs = fs
             self.osc = libdamp.generators.HarmonicOsc(N=512, fs=fs)
-            self.envelope = libdamp.processors.Envelope()
+            self.envelope = libdamp.processors.GainEnvelope()
             self.loss_fn = libdamp.RMSLoss()
 
         def forward(self, f0, amplitudes, gain):

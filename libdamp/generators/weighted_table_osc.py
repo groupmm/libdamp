@@ -18,7 +18,7 @@ class WeightedTableOsc(Generator):
 
     def __init__(
         self,
-        N: int,
+        frame_len: int,
         table,
         fs: float,
         mode: Literal["pulse", "wave"] = "pulse",
@@ -65,13 +65,13 @@ class WeightedTableOsc(Generator):
         self.interp_f0 = interp_f0
         self.interp_w = interp_w
 
-        self.N = N
+        self.frame_len = frame_len
 
         if table.ndim == 2:
             # add batch dimension
             table = table[None, :]
 
-        _, self.M, self.L = table.shape
+        _, _, self.entry_len = table.shape
 
         pw_table = ensure_tensor(table, dtype=torch.float32)
 
@@ -79,7 +79,7 @@ class WeightedTableOsc(Generator):
         if table_freq is not None:
             self.pw_freq = table_freq
         else:
-            self.pw_freq = self.fs / self.L  # assuming one period in the wavetable
+            self.pw_freq = self.fs / self.entry_len  # assuming one period in the wavetable
 
         # optional normalization
         if normalize == "power":
@@ -119,12 +119,12 @@ class WeightedTableOsc(Generator):
         B, _ = self.f0.shape
 
         # calculate instantaneous F0 for each sample
-        f0_inst = interpolate_samples(self.f0.unsqueeze(1), self.N, mode=self.interp_f0, prev_val=self.prev_f0)
+        f0_inst = interpolate_samples(self.f0.unsqueeze(1), self.frame_len, mode=self.interp_f0, prev_val=self.prev_f0)
         self.prev_f0 = f0_inst[..., -1]
         f0_inst = f0_inst.squeeze(1)  # shape now (B, F*N)
 
         # interpolate parameter for table lookup
-        w_inst = interpolate_samples(self.w.transpose(-2, -1), self.N, mode=self.interp_w, prev_val=self.prev_w)
+        w_inst = interpolate_samples(self.w.transpose(-2, -1), self.frame_len, mode=self.interp_w, prev_val=self.prev_w)
         self.prev_w = w_inst[..., -1]
         w_inst = w_inst.squeeze(1)  # shape now (B, M, F*N)
 
@@ -136,11 +136,11 @@ class WeightedTableOsc(Generator):
         else:
             # read table entries with adjusted speed according to instantaneous F0 (squish or stretch table entries in time)
             increment = f0_inst / self.pw_freq
-            read_sample = incremental_mod(torch.ones_like(increment) * self.L, increment)
+            read_sample = incremental_mod(torch.ones_like(increment) * self.entry_len, increment)
 
         # create a table sampling grid with shape (B, F*N, 1, 2)
         # read_sample values are in range [0, L], need to scale to [-1, 1] for grid_sample function
-        ph_inst_scaled = read_sample / self.L * 2 - 1
+        ph_inst_scaled = read_sample / self.entry_len * 2 - 1
         unused_height = torch.zeros_like(ph_inst_scaled)
         sampling_grid = torch.stack([ph_inst_scaled, unused_height], dim=2).unsqueeze(2)
 

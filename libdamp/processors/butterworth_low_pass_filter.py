@@ -9,13 +9,13 @@ from ..helpers.filters import design_butter_filter, iir_freq_sampling
 from .processor import Processor
 
 
-class LowPassFilter(Processor):
+class ButterworthLowPassFilter(Processor):
     """Butterworth low-pass filter processor.
 
     Processes signal with cascaded Butterworth low-pass filters using IIR frequency sampling design.
     """
 
-    def __init__(self, N: int, fs: float, order: int = 2, cascades: int = 1) -> None:
+    def __init__(self, frame_len: int, fs: float, order: int = 2, cascades: int = 1) -> None:
         """Initialize Butterworth low-pass filter processor.
 
         Parameters
@@ -33,7 +33,7 @@ class LowPassFilter(Processor):
 
         self.order = order
         self.cascades = cascades
-        self.N = N
+        self.frame_len = frame_len
         self.fs = fs
 
         self.clear()  # reset state
@@ -64,7 +64,7 @@ class LowPassFilter(Processor):
 
         y = x
         for _ in range(self.cascades):
-            y = iir_freq_sampling(b, a, y, N=self.N)
+            y = iir_freq_sampling(b, a, y, N=self.frame_len)
 
         if has_channel:
             y = y.reshape(B, C, -1)
