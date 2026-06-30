@@ -2,9 +2,8 @@ Running experiments
 ====================
 
 The :class:`~libdamp.experiment.Experiment` base class and the ``scripts/run.py`` entry point
-together provide a complete, configuration-driven training loop for models built from
-:mod:`libdamp.generators` and :mod:`libdamp.processors`, so that individual experiments only need
-to define the model itself, not any training boilerplate.
+together provide a complete, configuration-driven training loop for experiments with ``libdamp``.
+The main goal is to reduce training boilerplate code while maximizing flexibility of the individual experiment setup and ensuring reproducibility.
 
 The Experiment class
 ---------------------
@@ -42,19 +41,13 @@ Lightning hooks (``forward()``, ``training_step()``, ``validation_step()``, ``co
             return loss
 
 All constructor parameters of :class:`~libdamp.experiment.Experiment` itself (batch size, number
-of epochs, checkpointing, logging, ...) are marked ``gin.REQUIRED`` and are meant to be supplied
-through a `gin <https://github.com/google/gin-config>`_ configuration file rather than hardcoded,
-so the same experiment class can be reused across many training runs that only differ in
-configuration. :meth:`~libdamp.experiment.Experiment.log_audio` is a ready-made helper for logging
-example audio (predictions and, once, the reference) to disk and optionally MLflow after each
-epoch.
+of epochs, checkpointing, logging, ...) are marked ``gin.REQUIRED`` and are meant to be set in a `gin-config <https://github.com/google/gin-config>`_ configuration file rather than hardcoded, so the same experiment class can be reused across many training runs that only differ in configuration.
+:meth:`~libdamp.experiment.Experiment.log_audio` is a ready-made helper for logging example audio (predictions and, once, the reference) to disk and optionally MLflow.
 
 Running an experiment with run.py
 ----------------------------------
 
-``scripts/run.py`` is the command-line entry point that turns an
-:class:`~libdamp.experiment.Experiment` subclass and a gin config into a full training run. The
-gin config selects which experiment and datasets to use via the ``libdamp()`` binding::
+``scripts/run.py`` is the command-line entry point that turns an :class:`~libdamp.experiment.Experiment` subclass and a gin config into a full training run. The gin config selects which experiment and datasets to use via the ``libdamp()`` binding::
 
     libdamp.experiment = @MyExperiment()
     libdamp.train_dataset = @MyTrainDataset()
@@ -77,17 +70,12 @@ Command-line options:
   gin's ``include`` statement).
 - ``--seed``: fixed random seed for reproducible runs (default: ``0``).
 
-Given the resolved configuration, ``run.py`` then takes care of the rest of the training
-boilerplate so individual experiments don't have to:
+Given the resolved configuration, ``run.py`` then takes care of the rest of the training boilerplate so individual experiments don't have to:
 
 - builds the train/validation ``DataLoader``\\ s from the configured datasets;
-- sets up logging (CSV always, plus TensorBoard and/or MLflow if enabled) and writes the
-  fully-resolved ("operative") gin config alongside the run for reproducibility;
-- configures checkpointing (best-``n`` and/or last-epoch) and early stopping based on
-  ``val_loss``, and optionally resumes from a previous checkpoint's weights;
-- runs training via a Lightning ``Trainer`` configured from the experiment's parameters
-  (accelerator, devices, gradient accumulation/clipping, validation interval, ``fast_dev_run``
-  for quick smoke tests, ...);
+- sets up logging (CSV always, plus TensorBoard and/or MLflow if enabled) and writes the fully-resolved ("operative") gin config alongside the run for reproducibility;
+- configures checkpointing (best-``n`` and/or last-epoch) and early stopping based on ``val_loss``, and optionally resumes from a previous checkpoint's weights;
+- runs training via a Lightning ``Trainer`` configured from the experiment's parameters (accelerator, devices, gradient accumulation/clipping, validation interval, ``fast_dev_run`` for quick smoke tests, ...);
 - runs a final test pass with both the best and the last checkpoint, if a test dataset was given.
 
 API reference
