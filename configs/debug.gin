@@ -3,6 +3,6 @@
 Experiment.fast_dev_run = True
 # Check if batching works
 Experiment.batch_size = 2
-# Disable logging 
+# Disable logging
 Experiment.enable_tensorboard = False
 Experiment.enable_mlflow = False

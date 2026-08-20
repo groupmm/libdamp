@@ -67,3 +67,8 @@ libdamp.test_dataset = @test/PulseItDataset()
 PulseItDataset.num_excerpts = %num_excerpts
 PulseItDataset.frame_len = %frame_len
 PulseItDataset.num_frames = %num_frames
+
+PulseItDataset.path = "../datasets/ChoraleBricks/libdamp_all"
+
+val/PulseItDataset.random_seed = 0
+test/PulseItDataset.random_seed = 0

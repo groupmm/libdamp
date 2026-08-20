@@ -1,0 +1,3 @@
+train/PulseItDataset.selection = r"^(?!Drese_JesuGehVoran).*01_tp.*"
+val/PulseItDataset.selection = r"^Drese_JesuGehVoran_01_tp.*"
+test/PulseItDataset.selection = r"^Drese_JesuGehVoran_02_tp.*"

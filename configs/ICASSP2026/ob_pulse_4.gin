@@ -1,6 +1,0 @@
-PulseTableExperiment.table_mode = "pulse"
-PulseTableExperiment.num_pulses = 4
-
-train/PulseItDataset.path = "../pulse-it/choralebricks/old/train_ob"
-val/PulseItDataset.path = "../pulse-it/choralebricks/old/valid_ob"
-test/PulseItDataset.path = "../pulse-it/choralebricks/old/valid_ob"
