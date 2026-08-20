@@ -12,12 +12,12 @@ from .processor import Processor
 class ResonantFilter(Processor):
     """Parallel processing with biquad filters that represent individual resonances (or "formants")"""
 
-    def __init__(self, N: int, fs: float) -> None:
+    def __init__(self, frame_len: int, fs: float) -> None:
         """Initialize resonant filter processor.
 
         Parameters
         ----------
-        N : int
+        frame_len : int
             Frame length in samples for the IIR frequency sampling.
         fs : float
             Sampling rate in Hz.
@@ -25,7 +25,7 @@ class ResonantFilter(Processor):
         super().__init__()
 
         self.fs = fs
-        self.N = N
+        self.frame_len = frame_len
 
         self.clear()  # reset state
 
@@ -56,7 +56,7 @@ class ResonantFilter(Processor):
             if has_channel:
                 b_i = torch.repeat_interleave(b_i, C, dim=0)
                 a_i = torch.repeat_interleave(a_i, C, dim=0)
-            y += iir_freq_sampling(b_i, a_i, x, N=self.N)
+            y += iir_freq_sampling(b_i, a_i, x, N=self.frame_len)
 
         if has_channel:
             y = y.reshape(B, C, -1)
