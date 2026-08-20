@@ -35,6 +35,9 @@ class PulseItDataset(torch.utils.data.Dataset):
             Optional random seed for reproducible snippet selection (default: None).
         """
 
+        if not os.path.isdir(path):
+            raise FileNotFoundError(f"Dataset path does not exist: {path}")
+
         rng = torch.Generator()
         if random_seed is not None:
             rng.manual_seed(random_seed)
@@ -52,6 +55,9 @@ class PulseItDataset(torch.utils.data.Dataset):
         # (not using glob directly, because it only supports shell-style wildcards instead of complete regex)
         pattern = re.compile(selection)
         wav_files = [f for f in wav_files if pattern.match(os.path.basename(f))]
+
+        if len(wav_files) == 0:
+            raise FileNotFoundError(f"No wav files matching selection '{selection}' found in {path}")
 
         self.num_files = len(wav_files)
 
