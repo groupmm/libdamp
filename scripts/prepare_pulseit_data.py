@@ -39,7 +39,7 @@ class PulseItConverter:
             notes_annotation = pd.read_csv(notes_csv_file, sep=separator, skipinitialspace=True)
 
         if f0_csv_file:
-            f0_annotation = pd.read_csv(f0_csv_file, skipinitialspace=True)
+            f0_annotation = pd.read_csv(f0_csv_file, sep=separator, skipinitialspace=True)
             f0_annotation = f0_annotation.rename(columns={f0_col_names[0]: "TIME", f0_col_names[1]: "VALUE"})
             # Filter out zero or negative f0 values
             f0_annotation = f0_annotation[f0_annotation["VALUE"] > 0].reset_index(drop=True)
@@ -263,6 +263,7 @@ def main() -> None:
     parser.add_argument("ann_dir", type=str, help="Directory containing the annotation .csv files")
     parser.add_argument("col_names", type=str, nargs=2, default=["t", "f0"], help="Column names in the annotation .csv files for time and f0 values")
     parser.add_argument("output_dir", type=str, default="processed_data", help="Directory to save the processed .npy files")
+    parser.add_argument("wav_search_pattern", type=str, default="**/*.wav", help="glob search pattern for finding wav files in audio_dir")
     args = parser.parse_args()
 
     audio_dir = Path(args.audio_dir)
@@ -272,7 +273,7 @@ def main() -> None:
 
     converter = PulseItConverter()
 
-    for wav_file in audio_dir.glob("**/*.wav"):
+    for wav_file in audio_dir.glob(args.wav_search_pattern):
         # Look for the annotation file in ann_dir and its subfolders
         basename = wav_file.stem + ".csv"
         f0_csv_file = None

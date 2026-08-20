@@ -11,6 +11,9 @@ Framework for experiments with differentiable audio and music processing (DDSP) 
 - [Installation](#installation)
 - [Usage](#usage)
 - [Project structure](#project-structure)
+- [Experiments](#project-structure)
+  - [ICASSP2026](#icassp2026)
+  - [Vocal Revolutions](#vocal-revolutions)
 - [Development](#development)
   - [Running tests](#running-tests)
   - [Code style and consistency](#code-style-and-consistency)
@@ -67,6 +70,37 @@ test/           # unit tests
 notebooks/      # Jupyter notebooks with examples and explanations of the algorithms
 ```
 
+## Experiments
+
+### ICASSP2026
+
+The files in `experiments/ICASSP2026`, `configs/ICASSP2026`, and `notebooks/ICASSP2026` are accompanying the following publication:
+
+```
+@inproceedings{SchwaerDBM26_DiffPulse_ICASSP,
+  author      = {Simon Schw{\"a}r and Christian Dittmar and Stefan Balke and Meinard M{\"u}ller},
+  title       = {Differentiable Pulsetable Synthesis for Wind Instrument Modeling},
+  booktitle   = {Proceedings of the {IEEE} International Conference on Acoustics, Speech, and Signal Processing ({ICASSP})},
+  year        = {2026},
+  pages       = {14792--14796},
+  address     = {Barcelona, Spain},
+  doi         = {10.1109/ICASSP55912.2026.11462505}
+}
+```
+
+To reproduce results:
+1. Download the [ChoraleBricks](https://zenodo.org/records/20849469) dataset (we used version 1.0.1, but newer versions work too).
+2. Preprocess the data following the instructions in the notebook `notebooks/ICASPP2026/preprocess_choralebricks.ipynb`. This creates a folder with separate files for audio, F0 trajectory, gain envelope, etc. in the format that is readable by `libdamp.PulseItDataset`.
+3. Update the config variable `PulseItDataset.path` in `configs/ICASSP2026/pulsewave_base.gin`. The default path is `../datasets/ChoraleBricks/libdamp_all`, relative to the main folder of this framework.
+4. Run the experiment, for example with `uv run scripts/run.py --config configs/ICASSP2026/pulsewave_base.gin configs/ICASSP2026/instr/01_tp.gin configs/ICASSP2026/mode/pulse_4.gin` for training with trumpet voice 1 and using the pulsetable method with 4 pulses (see the configs folder for other options).
+5. Trained models are stored in the `results` folder. You can load them and play around with them using the notebook `notebooks/ICASSP2026/explore_model.ipynb`.
+
+### Vocal Revolutions
+
+The files in `experiments/VocalRevolutions`, `configs/VocalRevolutions`, and `notebooks/VocalRevolutions` are accompanying an art project in collaboration with [Tim Otto Roth](https://imachination.net/) and his [Heaven's Carousel](https://vimeo.com/1102923991).
+
+Coming soon.
+
 ## Development
 
 ### Running tests
@@ -89,6 +123,8 @@ If you want to run these checks automatically on commit, install the pre-commit 
 ```
 uv run pre-commit install
 ```
+
+This also strips output cells from Jupyter notebooks before they are committed, via [nbstripout](https://github.com/kynan/nbstripout).
 
 ### Building the documentation
 

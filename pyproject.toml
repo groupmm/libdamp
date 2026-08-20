@@ -52,6 +52,7 @@ notebooks = [
     "seaborn>=0.13.2",
     "jupyter>=1.1.1",
     "librosa>=0.11.0",
+    "mir_eval>=0.8.0",
 ]
 
 
