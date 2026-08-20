@@ -354,7 +354,7 @@ class PulseTableExperiment(libdamp.Experiment):
         L_mss = self.loss_fn(x, y).mean()
 
         self.log("val_loss", L_mss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log_audio(y, reference=x, current_batch_idx=batch_idx, split="val")
+        self.log_audio("val_output", y, reference=x, current_batch_idx=batch_idx, split="val")
 
         return L_mss
 
