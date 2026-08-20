@@ -16,6 +16,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import libdamp  # noqa: F401 - imported for the side effect of registering gin-configurable classes
 
+# Registered here (rather than in libdamp) so gin configs can reference `@PyTorchProfiler()` directly,
+# e.g. to set `sort_by_key` or widen `table_kwargs.max_name_column_width` for per-module profiling output.
+gin.external_configurable(pl.profilers.PyTorchProfiler, name="PyTorchProfiler")
+
 
 @gin.configurable("libdamp")
 def libdamp_entry_point(experiment=gin.REQUIRED, train_dataset=gin.REQUIRED, val_dataset=None, test_dataset=None):
