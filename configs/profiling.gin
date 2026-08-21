@@ -1,0 +1,6 @@
+# Configuration for profiling a training run and printing timing to stdout
+
+Experiment.profiler = @PyTorchProfiler()
+PyTorchProfiler.row_limit = 30
+PyTorchProfiler.sort_by_key = "cuda_time_total"
+PyTorchProfiler.table_kwargs = {"max_name_column_width": 300} # default of 55 truncates most module/op names
