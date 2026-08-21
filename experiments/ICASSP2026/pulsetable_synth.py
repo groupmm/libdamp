@@ -29,7 +29,7 @@ class WeightedPulseTableSynthesizer(torch.nn.Module):
 
         self.envelope.clear()
         self.envelope.update(g)
-        x = self.envelope.process(x).squeeze(1)  # remove channel dim
+        x = self.envelope.process(x)
 
         return x
 

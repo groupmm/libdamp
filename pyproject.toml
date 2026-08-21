@@ -36,6 +36,7 @@ dependencies = [
     "torchaudio >= 2.0",
     "scipy >= 1.11.1",
     "soundfile >= 0.13.1",
+    "setuptools",  # required by triton, added explicitly because uv seems to skip it as a transitive torch dependency
 ]
 
 [project.optional-dependencies]

@@ -9,15 +9,15 @@ Framework for experiments with differentiable audio and music processing (DDSP) 
 ## Table of contents
 
 - [Installation](#installation)
+  - [Triton on Linux/CUDA](#triton-on-linuxcuda)
 - [Usage](#usage)
 - [Project structure](#project-structure)
-- [Experiments](#project-structure)
-  - [ICASSP2026](#icassp2026)
+- [Experiments](#experiments)
+  - [ICASSP2026 (Wind Instrument Synthesis with Pulsetables)](#icassp2026-wind-instrument-synthesis-with-pulsetables)
   - [Vocal Revolutions](#vocal-revolutions)
 - [Development](#development)
   - [Running tests](#running-tests)
   - [Code style and consistency](#code-style-and-consistency)
-  - [Running the linter on commit](#running-the-linter-on-commit)
   - [Building the documentation](#building-the-documentation)
 - [Contributing](#contributing)
 - [Citation](#citation)
@@ -34,16 +34,24 @@ uv sync
 
 This creates a `.venv` and installs `libdamp` in editable mode together with its core dependencies, using the versions pinned in `uv.lock`.
 
-To also pull in the optional dependency groups (development tooling, docs), use:
+To also pull in the optional dependency groups (development tooling, docs, notebooks, etc.), use:
 
 ```
-uv sync --extra develop --extra doc
+uv sync --extra develop,tests,doc,notebooks
 ```
 
 If you'd rather install into an existing/active environment with `pip`, that works too:
 
 ```
 pip install -e .
+```
+
+### Triton on Linux/CUDA
+
+On Linux with a CUDA device, [`incremental_mod`](libdamp/helpers/incremental_mod.py) uses a [Triton](https://github.com/triton-lang/triton) kernel that is at least 10-100x faster than the fallback implementation. If Triton fails to import (for example because `setuptools` is missing from the environment), the code silently falls back to the slow path without any warning, which will slow down the Pulsetable synthesis in particular. You can run the following script after setting up your environment on a CUDA machine to confirm Triton is actually working:
+
+```
+uv run scripts/check_triton.py
 ```
 
 ## Usage
@@ -72,7 +80,7 @@ notebooks/      # Jupyter notebooks with examples and explanations of the algori
 
 ## Experiments
 
-### ICASSP2026
+### ICASSP2026 (Wind Instrument Synthesis with Pulsetables)
 
 The files in `experiments/ICASSP2026`, `configs/ICASSP2026`, and `notebooks/ICASSP2026` are accompanying the following publication:
 
