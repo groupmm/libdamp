@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below, or cite the paper it accompanies."
+type: software
+title: libdamp
+version: 0.1.0
+date-released: "2026-08-20"
+url: "https://github.com/groupmm/libdamp"
+repository-code: "https://github.com/groupmm/libdamp"
+license: MIT
+authors:
+  - given-names: Simon
+    family-names: Schwär
+    email: mail@simon-schwaer.de
+  - given-names: Manuel
+    family-names: Peters
+    email: manuel.peters@audiolabs-erlangen.de
+  - given-names: Meinard
+    family-names: Müller
+    email: meinard.mueller@audiolabs-erlangen.de
+preferred-citation:
+  type: conference-paper
+  title: "Differentiable Pulsetable Synthesis for Wind Instrument Modeling"
+  authors:
+    - given-names: Simon
+      family-names: Schwär
+    - given-names: Christian
+      family-names: Dittmar
+    - given-names: Stefan
+      family-names: Balke
+    - given-names: Meinard
+      family-names: Müller
+  collection-title: "Proceedings of the IEEE International Conference on Acoustics, Speech, and Signal Processing (ICASSP)"
+  conference:
+    name: "IEEE International Conference on Acoustics, Speech, and Signal Processing (ICASSP)"
+    city: Barcelona
+    country: ES
+  year: 2026
+  start: "14792"
+  end: "14796"
+  doi: "10.1109/ICASSP55912.2026.11462505"

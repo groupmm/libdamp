@@ -62,7 +62,7 @@ import libdamp
 experiment = libdamp.Experiment(...)
 ```
 
-A full documentation is available (TODO).
+A full documentation is available [here](https://groupmm.github.io/libdamp/).
 
 See the [`configs`](configs) and [`experiments`](experiments) directories for example experiment configurations, and [`scripts`](scripts) for entry points used to run them.
 

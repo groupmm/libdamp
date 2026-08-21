@@ -21,7 +21,7 @@ The experiments provided in this repository accompany the following publications
 
 If you use ``libdamp`` in your research, please consider citing one of the above works.
 
-In addition, we provide code and experiment setups accompanying the following talks and workshop contributions:
+In addition, we used ``libdamp`` for the following talks and workshop contributions:
 
 1. Manuel Peters and Simon Schwär. *Differentiable Wind Instrument Synthesis with Pulsetables and Beyond.*  Workshop on Audio & Music Signal Processing (pre-ICASSP), Barcelona, Spain, 2026.
 2. Simon Schwär, Christian Dittmar, Stefan Balke, Meinard Müller. *Comparing Differentiable Implementations of Classical Sound Synthesis Methods.* DAGA, Dresden, 2026.
