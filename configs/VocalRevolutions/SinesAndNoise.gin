@@ -1,0 +1,61 @@
+include 'configs/base.gin'
+
+########
+# override defaults of Experiment
+########
+Experiment.name = "VocalRevolutions_SinesNoise_{date}"
+Experiment.early_stopping = False
+Experiment.save_best_n_ckpts = 1
+Experiment.max_epochs = 400
+Experiment.batch_size = 16
+Experiment.limit_val_batches = 0.25
+Experiment.shuffle_data = True
+
+sampling_rate = 48000.
+frame_len = 128
+num_excerpts = 2000 # per item
+num_frames = 1536 # -> 4.096 seconds
+
+########
+# load and configure a specific experiment
+########
+import experiments.VocalRevolutions.SinesAndNoise
+
+libdamp.experiment = @SinesAndNoiseExperiment()
+
+SinesAndNoiseExperiment.N = %frame_len
+SinesAndNoiseExperiment.fs = %sampling_rate
+SinesAndNoiseExperiment.learning_rate = 1e-4
+
+SinesAndNoiseExperiment.num_sines = 24
+SinesAndNoiseExperiment.num_noise_bands = 8
+SinesAndNoiseExperiment.num_freq_bins = 16
+
+SinesAndNoiseExperiment.model_size = 512
+
+SinesAndNoiseExperiment.loss_fn = @MSSLoss()
+MSSLoss.w_mag = 10.0
+MSSLoss.w_log = 0.0
+MSSLoss.w_mlog = 5.0
+MSSLoss.mgamma = 10.0
+MSSLoss.p = 1
+MSSLoss.fft_sizes = (4096, 2048, 1024, 512, 256, 128, 64)
+MSSLoss.win = "flattop"
+
+
+########
+# load and configure datasets for train/val/test
+########
+libdamp.train_dataset = @train/PulseItDataset()
+libdamp.val_dataset = @val/PulseItDataset()
+libdamp.test_dataset = @test/PulseItDataset()
+
+PulseItDataset.num_excerpts = %num_excerpts
+PulseItDataset.frame_len = %frame_len
+PulseItDataset.num_frames = %num_frames
+
+PulseItDataset.path = "../datasets/VocalRevolutions/libdamp_all"
+
+train/PulseItDataset.selection = r".*"
+val/PulseItDataset.selection = r".*"
+test/PulseItDataset.selection = r".*"

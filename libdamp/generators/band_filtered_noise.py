@@ -87,8 +87,8 @@ class BandFilteredNoise(Generator):
         x = 2 * torch.rand((self.B * self.num_bands, self.F * self.frame_len)).to(device=self.device, dtype=self.dtype) - 1
 
         # iir_freq_sampling supports only one batch dimension so we concatenate the bands and batch dim
-        b = self.b.transpose(2, 1).view(self.B * self.num_bands, self.F, -1)
-        a = self.a.transpose(2, 1).view(self.B * self.num_bands, self.F, -1)
+        b = self.b.transpose(2, 1).reshape(self.B * self.num_bands, self.F, -1)
+        a = self.a.transpose(2, 1).reshape(self.B * self.num_bands, self.F, -1)
         y = iir_freq_sampling(b, a, x, N=self.frame_len)
         y = y.view(self.B, self.num_bands, self.F * self.frame_len)
 

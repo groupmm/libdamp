@@ -52,9 +52,17 @@ notebooks = [
     "matplotlib>=3.10.8",
     "seaborn>=0.13.2",
     "jupyter>=1.1.1",
+    "libf0>=1.1.1",
     "librosa>=0.11.0",
     "mir_eval>=0.8.0",
 ]
+
+# override numpy > 2.0 dependency of libf0
+[[tool.uv.dependency-metadata]]
+name = "libf0"
+version = "1.1.1"
+requires-dist = ["librosa>=0.11", "numba>=0.63", "numpy>=1.17", "scipy>=1.15"]
+requires-python = ">=3.10"
 
 
 [project.urls]
