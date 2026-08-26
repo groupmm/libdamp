@@ -1,0 +1,5 @@
+PulseItDataset.path = "../datasets/VocalRevolutions/libdamp_all"
+
+train/PulseItDataset.selection = r".*"
+val/PulseItDataset.selection = r".*"
+test/PulseItDataset.selection = r".*"

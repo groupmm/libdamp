@@ -1,0 +1,5 @@
+PulseItDataset.path = "../datasets/ChoraleBricks/libdamp_all"
+
+train/PulseItDataset.selection = r"^(?!Drese_JesuGehVoran).*01_fl.*"
+val/PulseItDataset.selection = r"^Drese_JesuGehVoran_01_fl.*"
+test/PulseItDataset.selection = r"^Drese_JesuGehVoran_01_fl.*"

@@ -52,7 +52,7 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         self.band_synth = libdamp.generators.BandFilteredNoise(N, self.num_noise_bands, 2, fs)
 
         self.freq_scaling = libdamp.LogitsToFreq(bins_per_freq=self.num_freq_bins, f_min=100, f_max=400)
-        self.fc_scaling = libdamp.LogitsToFreq(bins_per_freq=self.num_freq_bins, f_min=200, f_max=fs / 2)
+        self.fc_scaling = libdamp.LogitsToFreq(bins_per_freq=self.num_freq_bins, f_min=200, f_max=15000)
 
         self.model = torch.nn.Sequential(
             libdamp.ConvStack(n_mels, model_size),
@@ -94,7 +94,7 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
             fc = self.fc_scaling(fc)  # shape: (B, F, N)
 
             q = self.noise_bw_head(z)
-            q = libdamp.exp_sigmoid(q, exp=math.log(10.0)) / 2 + 0.01
+            q = libdamp.exp_sigmoid(q, exp=math.log(10.0)) / 2.05 + 0.01
             bw = q * fc.detach()  # shape: (B, F, N)
 
             ba = self.noise_ba_head(z)
