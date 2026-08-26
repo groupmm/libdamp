@@ -3,7 +3,7 @@
 import scipy.signal
 import torch
 
-from libdamp.helpers.filters import combined_freqz, design_butter_filter, design_resonant_filter, freqz
+from libdamp.helpers.filters import combined_freqz, design_butter_bandpass, design_butter_filter, design_resonant_filter, freqz
 
 
 class TestFreqz:
@@ -72,6 +72,38 @@ class TestDesignButterFilter:
         # well above cutoff, the higher-order filter should attenuate more strongly
         stop_bin = int(2 * fc / (fs / 2) * (H2.shape[-1] - 1))
         assert torch.abs(H4[stop_bin]) < torch.abs(H2[stop_bin])
+
+
+class TestDesignButterBandpass:
+    def test_peak_is_located_at_center_frequency(self):
+        fs = 48000.0
+        fc = torch.tensor(1000.0)
+        bw = torch.tensor(200.0)
+        b, a = design_butter_bandpass(fc, bw, fs, order=2)
+        H = freqz(b, a, N=4096)
+        peak_bin = torch.argmax(torch.abs(H))
+        peak_freq = peak_bin / (H.shape[-1] - 1) * (fs / 2)
+        assert torch.isclose(peak_freq, fc, atol=fs / 4096 * 2)
+
+    def test_gradients_stay_finite_across_parameter_range(self):
+        # Regression test: the LP->BP pole transformation and the gain-normalization step each divide by a
+        # value that can come arbitrarily close to zero for ordinary, in-range (fc, bw) combinations (a
+        # near-critical discriminant, and a near-resonant filter evaluated at its own center frequency,
+        # respectively). Both produced NaN/Inf gradients before being clamped, silently corrupting training
+        # after an unpredictable number of steps once the estimated fc/bw wandered into that region.
+        fs = 48000.0
+        order = 2
+        torch.manual_seed(0)
+        n = 5000
+        fc = torch.empty(n).uniform_(200, 15000).requires_grad_(True)
+        q = torch.empty(n).uniform_(0.01, 1.0)
+        bw = (q * fc.detach()).requires_grad_(True)
+
+        b, a = design_butter_bandpass(fc, bw, fs, order=order)
+        (b.sum() + a.sum()).backward()
+
+        assert torch.isfinite(fc.grad).all()
+        assert torch.isfinite(bw.grad).all()
 
 
 class TestDesignResonantFilter:

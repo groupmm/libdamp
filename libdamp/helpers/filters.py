@@ -152,6 +152,14 @@ def design_resonant_filter(f: torch.Tensor, r: torch.Tensor, fs: float) -> tuple
     return b, a
 
 
+def _clamp_complex_magnitude(z: torch.Tensor, eps: float) -> torch.Tensor:
+    """Clamp a complex tensor's magnitude to be at least `eps`, keeping its phase where defined.
+    """
+    mag = z.abs()
+    phase = torch.where(mag > eps, z / mag.clamp_min(eps), torch.ones_like(z))
+    return phase * mag.clamp_min(eps)
+
+
 def design_butter_bandpass(
     fc: torch.Tensor,
     bw: torch.Tensor,
@@ -207,7 +215,11 @@ def design_butter_bandpass(
     # giving s = (s_lp*bw_w ± sqrt((s_lp*bw_w)^2 - 4*fc_w^2)) / 2
     bw_poles = bw_w[..., None] * proto_poles[None, :]  # shape (batch, order)
     discriminant = bw_poles**2 - 4 * (fc_w[..., None] ** 2)  # shape (batch, order)
-    sqrt_disc = torch.sqrt(discriminant.to(torch.complex128 if dtype == torch.float64 else torch.complex64))
+    discriminant = discriminant.to(torch.complex128 if dtype == torch.float64 else torch.complex64)
+    # d/dx sqrt(x) diverges as x -> 0, so (fc, bw) combinations whose discriminant crosses zero produce
+    # NaN/Inf gradients even though the forward pass itself stays finite. By clamping the discriminant magnitude
+    # away from zero, the derivative stays bounded during training.
+    sqrt_disc = torch.sqrt(_clamp_complex_magnitude(discriminant, 1e-6))
     bp_poles = torch.cat([(bw_poles + sqrt_disc) / 2, (bw_poles - sqrt_disc) / 2], dim=-1)  # shape (batch, 2*order)
 
     # Bandpass gain: bw_w^order (matches scipy's normalisation)
@@ -229,6 +241,7 @@ def design_butter_bandpass(
     z_inv = torch.exp(-1j * 2 * torch.pi * fc[..., None] / fs * n)  # z^{-n}
     B = torch.sum(b.to(z_inv.dtype) * z_inv, dim=-1)
     A = torch.sum(a.to(z_inv.dtype) * z_inv, dim=-1)
+    A = _clamp_complex_magnitude(A, 1e-6) # see above
     H_fc = B / A
     b = b / torch.abs(H_fc)[..., None]
 
