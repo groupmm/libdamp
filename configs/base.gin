@@ -19,10 +19,11 @@ Experiment.early_stopping_patience = 10 # how many validation steps without impr
 Experiment.save_path = "./results" # basepath where to save checkpoints and logs of the experiment
 Experiment.name = "experiment_{date}" # {date} will be replaced with a string representing the current date and time
 Experiment.save_best_n_ckpts = 0 # how many of the best checkpoints to save according to validation loss
+Experiment.save_every_nth_epoch_ckpt = 0 # if larger than 0, save and keep a checkpoint every nth epoch
 Experiment.save_last_epoch_ckpt = True # whether to save the last checkpoint after each epoch
 Experiment.enable_tensorboard = False
 Experiment.enable_mlflow = False
-Experiment.mlflow_tracking_uri = "http://127.0.0.1:5000" # MLflow tracking URI, e.g. "http://localhost:5000" for running local server 
+Experiment.mlflow_tracking_uri = "http://127.0.0.1:5000" # MLflow tracking URI, e.g. "http://localhost:5000" for running local server
                                                          # or "sqlite:////path/to/mlflow.db" for saving directly to db file.
 Experiment.enable_audio_logging = False # Whether to allow logging a specific audio example during each epoch.
                                         # You still have to call self.log_audio() in the experiment in train_step and/or validation_step, test_step.

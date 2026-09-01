@@ -153,8 +153,7 @@ def design_resonant_filter(f: torch.Tensor, r: torch.Tensor, fs: float) -> tuple
 
 
 def _clamp_complex_magnitude(z: torch.Tensor, eps: float) -> torch.Tensor:
-    """Clamp a complex tensor's magnitude to be at least `eps`, keeping its phase where defined.
-    """
+    """Clamp a complex tensor's magnitude to be at least `eps`, keeping its phase where defined."""
     mag = z.abs()
     phase = torch.where(mag > eps, z / mag.clamp_min(eps), torch.ones_like(z))
     return phase * mag.clamp_min(eps)
@@ -241,7 +240,7 @@ def design_butter_bandpass(
     z_inv = torch.exp(-1j * 2 * torch.pi * fc[..., None] / fs * n)  # z^{-n}
     B = torch.sum(b.to(z_inv.dtype) * z_inv, dim=-1)
     A = torch.sum(a.to(z_inv.dtype) * z_inv, dim=-1)
-    A = _clamp_complex_magnitude(A, 1e-6) # see above
+    A = _clamp_complex_magnitude(A, 1e-6)  # see above
     H_fc = B / A
     b = b / torch.abs(H_fc)[..., None]
 

@@ -5,7 +5,8 @@ include 'configs/base.gin'
 ########
 Experiment.name = "VocalRevolutions_SinesNoise_{date}"
 Experiment.early_stopping = False
-Experiment.save_best_n_ckpts = 1
+Experiment.save_last_epoch_ckpt = False
+Experiment.save_every_nth_epoch_ckpt = 2
 Experiment.max_epochs = 400
 Experiment.batch_size = 16
 Experiment.limit_val_batches = 0.25

@@ -39,6 +39,7 @@ class Experiment(L.LightningModule):
         name=gin.REQUIRED,
         profiler=gin.REQUIRED,
         save_best_n_ckpts=gin.REQUIRED,
+        save_every_nth_epoch_ckpt=gin.REQUIRED,
         save_last_epoch_ckpt=gin.REQUIRED,
         save_path=gin.REQUIRED,
         shuffle_data=gin.REQUIRED,
@@ -94,6 +95,8 @@ class Experiment(L.LightningModule):
             PyTorch Lightning profiler to use
         save_best_n_ckpts : int
             Number of best checkpoints to keep
+        save_every_nth_epoch_ckpt : int
+            Save checkpoint after every nth epoch
         save_last_epoch_ckpt : bool
             Whether to save the last epoch checkpoint
         save_path : str
@@ -126,6 +129,7 @@ class Experiment(L.LightningModule):
         self.name = name
         self.profiler = profiler
         self.save_best_n_ckpts = save_best_n_ckpts
+        self.save_every_nth_epoch_ckpt = save_every_nth_epoch_ckpt
         self.save_last_epoch_ckpt = save_last_epoch_ckpt
         self.save_path = Path(save_path)
         self.shuffle_data = shuffle_data

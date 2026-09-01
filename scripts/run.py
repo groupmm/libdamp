@@ -133,6 +133,16 @@ def run():
                     save_on_train_epoch_end=True,
                 )
             )
+        if experiment.save_every_nth_epoch_ckpt > 0:
+            callbacks.append(
+                pl.callbacks.ModelCheckpoint(
+                    dirpath=experiment.save_path / experiment.name / "checkpoints",
+                    filename="ckpt-{epoch}-{val_loss:.2f}",
+                    every_n_epochs=experiment.save_every_nth_epoch_ckpt,
+                    save_top_k=-1,
+                    save_on_train_epoch_end=True,
+                )
+            )
         if experiment.early_stopping:
             callbacks.append(pl.callbacks.EarlyStopping(monitor="val_loss", patience=experiment.early_stopping_patience))
 
