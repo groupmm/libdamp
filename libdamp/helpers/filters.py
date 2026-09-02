@@ -26,6 +26,13 @@ THIRD_OCTAVE_BANDS = torch.Tensor(
 OCTAVE_BANDS = torch.Tensor([31.25, 62.50, 125.00, 250.00, 500.00, 1000.00, 2000.00, 4000.00, 8000.00, 16000.00])
 
 
+def _clamp_complex_magnitude(z: torch.Tensor, eps: float) -> torch.Tensor:
+    """Clamp a complex tensor's magnitude to be at least `eps`, keeping its phase where defined."""
+    mag = z.abs()
+    phase = torch.where(mag > eps, z / mag.clamp_min(eps), torch.ones_like(z))
+    return phase * mag.clamp_min(eps)
+
+
 def freqz(b: torch.Tensor, a: torch.Tensor, N: int = 1024, dtype: torch.dtype = torch.complex64) -> torch.Tensor:
     """Sample frequency response of a digital filter.
 
@@ -70,7 +77,9 @@ def freqz(b: torch.Tensor, a: torch.Tensor, N: int = 1024, dtype: torch.dtype = 
     omega = torch.outer(torch.arange(1, order), freqs).type(dtype)
     z = torch.exp(-1j * omega).to(b.device)
 
-    H = (b[..., [0]] + b[..., 1:] @ z) / (1 + a[..., 1:] @ z)
+    # limit denominator magnitude below to avoid exploding gradients for strongly resonant filters
+    denom = _clamp_complex_magnitude(1 + a[..., 1:] @ z, 1e-6)
+    H = (b[..., [0]] + b[..., 1:] @ z) / denom
 
     return H
 
@@ -150,13 +159,6 @@ def design_resonant_filter(f: torch.Tensor, r: torch.Tensor, fs: float) -> tuple
     a[..., 2] = r * r
 
     return b, a
-
-
-def _clamp_complex_magnitude(z: torch.Tensor, eps: float) -> torch.Tensor:
-    """Clamp a complex tensor's magnitude to be at least `eps`, keeping its phase where defined."""
-    mag = z.abs()
-    phase = torch.where(mag > eps, z / mag.clamp_min(eps), torch.ones_like(z))
-    return phase * mag.clamp_min(eps)
 
 
 def design_butter_bandpass(

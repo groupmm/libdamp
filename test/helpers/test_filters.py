@@ -28,6 +28,24 @@ class TestFreqz:
         else:
             assert False, "Expected an AssertionError when a[0] != 1."
 
+    def test_gradients_stay_finite_for_a_highly_resonant_filter(self):
+        # Regression test: freqz samples H(z) at a fixed grid of N frequency bins, unrelated to where a given
+        # filter's own poles sit. For a highly resonant (narrow, high-Q) filter, a pole can land arbitrarily
+        # close to one of those bins purely by coincidence, driving the bin's denominator (1 + a[1:] @ z) close
+        # to zero and producing NaN/Inf gradients even for an otherwise unremarkable, in-range filter design.
+        from libdamp.helpers.filters import design_butter_bandpass
+
+        fs = 48000.0
+        fc = torch.tensor([396.849853515625], requires_grad=True)
+        bw = torch.tensor([0.01 * 396.849853515625], requires_grad=True)
+
+        b, a = design_butter_bandpass(fc, bw, fs, order=2)
+        H = freqz(b, a, N=128)
+        H.abs().sum().backward()
+
+        assert torch.isfinite(fc.grad).all()
+        assert torch.isfinite(bw.grad).all()
+
 
 class TestCombinedFreqz:
     def test_series_combination_multiplies_responses(self):
