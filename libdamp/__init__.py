@@ -20,6 +20,7 @@ from .datasets import (
     NSynthDataset,
     PulseItDataset,
     SignalF0ExcerptsDataset,
+    SignalF0Dataset,
     SyntheticSinusoidsDataset,
     ZipDataset,
 )

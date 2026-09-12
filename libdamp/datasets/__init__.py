@@ -8,6 +8,7 @@ from .excerpts import ExcerptsDataset, SignalF0ExcerptsDataset
 from .medleydb import MDBSynthDataset
 from .nsynth import NSynthDataset
 from .pulseit import PulseItDataset
+from .signal_f0 import SignalF0Dataset
 from .synthetic import SyntheticSinusoidsDataset
 
 __all__ = [
@@ -18,5 +19,6 @@ __all__ = [
     "MDBSynthDataset",
     "NSynthDataset",
     "PulseItDataset",
+    "SignalF0Dataset",
     "SyntheticSinusoidsDataset",
 ]

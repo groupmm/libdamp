@@ -133,7 +133,7 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         return self.synth_signal(g, f_s, a_s, fc, bw, ba, sum_up)
 
     def training_step(self, batch, _):
-        x, _, _, _ = batch
+        x, _ = batch
         y = self(x)
 
         loss = self.loss_fn(x.squeeze(), y.squeeze()).mean()
@@ -141,7 +141,7 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         return loss
 
     def validation_step(self, batch, _):
-        x, _, _, _ = batch
+        x, _ = batch
         y = self(x)
 
         loss = self.loss_fn(x.squeeze(), y.squeeze()).mean()
@@ -149,7 +149,7 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         return loss
 
     def test_step(self, batch, _):
-        x, _, _, _ = batch
+        x, _ = batch
         y = self(x)
 
         loss = self.loss_fn(x.squeeze(), y.squeeze()).mean()
