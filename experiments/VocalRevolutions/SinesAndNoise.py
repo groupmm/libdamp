@@ -127,17 +127,25 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
 
         return self.env.process(y)
 
-    def forward(self, x, sum_up=True):
+    def forward(self, x, sum_up=True, return_f=False):
         g, f_s, a_s, fc, bw, ba = self.estimate_params(x)
+        y = self.synth_signal(g, f_s, a_s, fc, bw, ba, sum_up)
 
-        return self.synth_signal(g, f_s, a_s, fc, bw, ba, sum_up)
+        if return_f:
+            return y, f_s
+
+        return y
 
     def training_step(self, batch, _):
-        x, _ = batch
-        y = self(x)
+        x, f0 = batch
+        y, f_s = self(x, return_f=True)
 
-        loss = self.loss_fn(x.squeeze(), y.squeeze()).mean()
+        f_gt = f0[:,None,:] * torch.arange(1, self.num_sines+1).to(f0.device)[None,:,None]
+        loss_f = 0.1 * (f_s - f_gt)**2
+
+        loss = self.loss_fn(x.squeeze(), y.squeeze()).mean() + loss_f.mean()
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("freq_loss", loss_f, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def validation_step(self, batch, _):
