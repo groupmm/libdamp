@@ -141,10 +141,12 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         y, f_s = self(x, return_f=True)
 
         f_gt = f0[:,None,:] * torch.arange(1, self.num_sines+1).to(f0.device)[None,:,None]
-        loss_f = (0.1 * (f_s - f_gt)**2).mean()
+        loss_f = 0.001 * ((f_s - f_gt)**2).mean()
+        loss_r = self.loss_fn(x.squeeze(), y.squeeze()).mean()
 
-        loss = self.loss_fn(x.squeeze(), y.squeeze()).mean() + loss_f
+        loss = loss_r + loss_f
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("rec_loss", loss_r, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("freq_loss", loss_f, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
