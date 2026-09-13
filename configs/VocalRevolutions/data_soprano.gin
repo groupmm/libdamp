@@ -1,2 +1,2 @@
 train/SignalF0Dataset.path = "../datasets/VocalRevolutions/Magnificat_Separated/"
-train/SignalF0Dataset.selection = r".*"
+train/SignalF0Dataset.selection = r"S_.*"

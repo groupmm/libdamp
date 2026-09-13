@@ -62,8 +62,9 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
             libdamp.BiLSTM(model_size, model_size // 2),
         )
 
-        self.sine_f_head = torch.nn.Linear(model_size, self.num_freq_bins * self.num_sines)
-        self.sine_a_head = torch.nn.Linear(model_size, self.num_sines)
+        if self.num_sines > 0:
+            self.sine_f_head = torch.nn.Linear(model_size, self.num_freq_bins * self.num_sines)
+            self.sine_a_head = torch.nn.Linear(model_size, self.num_sines)
 
         if self.num_noise_bands > 0:
             self.noise_fc_head = torch.nn.Linear(model_size, self.num_freq_bins * self.num_noise_bands)
@@ -80,15 +81,19 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         X = torch.log(1 + self.meltransform(x))
         z = self.model(X)
 
-        f_s = self.sine_f_head(z)
-        f_s = self.freq_scaling(f_s)
-        f_s = torch.transpose(f_s, -2, -1)  # shape: (B, N, F)
-        # f_s *= 2 ** torch.linspace(0, 5.6, self.num_sines)[None, :, None].to(f_s)  # distribute in octaves
-        # f_s += torch.linspace(0)[None, :, None].to(f_s) # linear bias
+        if self.num_sines > 0:
+            f_s = self.sine_f_head(z)
+            f_s = self.freq_scaling(f_s)
+            f_s = torch.transpose(f_s, -2, -1)  # shape: (B, N, F)
+            # f_s *= 2 ** torch.linspace(0, 5.6, self.num_sines)[None, :, None].to(f_s)  # distribute in octaves
+            # f_s += torch.linspace(0)[None, :, None].to(f_s) # linear bias
 
-        a_s = self.sine_a_head(z)
-        a_s = libdamp.exp_sigmoid(a_s - 3, exp=math.log(10.0))
-        a_s = torch.transpose(a_s, -2, -1)  # shape: (B, N, F)
+            a_s = self.sine_a_head(z)
+            a_s = libdamp.exp_sigmoid(a_s - 3, exp=math.log(10.0))
+            a_s = torch.transpose(a_s, -2, -1)  # shape: (B, N, F)
+        else:
+            f_s = None
+            a_s = None
 
         g = self.env_head(z)
         g = libdamp.exp_sigmoid(g, exp=math.log(10.0)).squeeze(-1)  # shape: (B, F)
@@ -111,16 +116,21 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         return g, f_s, a_s, fc, bw, ba
 
     def synth_signal(self, g, f_s, a_s, fc, bw, ba, sum_up=True):
-        self.sine_synth.clear()
-        self.sine_synth.update(f_s, a_s)
-        y_s = self.sine_synth.generate(sum_up=sum_up)
-
-        y = y_s
+        if self.num_sines > 0:
+            self.sine_synth.clear()
+            self.sine_synth.update(f_s, a_s)
+            y = self.sine_synth.generate(sum_up=sum_up)
+        else:
+            y = None
 
         if self.num_noise_bands > 0:
             self.band_synth.clear()
             self.band_synth.update(fc, bw, ba)
             y_n = self.band_synth.generate(sum_up=sum_up)
+
+            if y is None:
+                y = torch.zeros_like(y_n)
+
             if not sum_up:
                 y = torch.concat([y, y_n], dim=1)
             else:
@@ -144,9 +154,13 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         x, f0 = batch
         y, f_s = self(x, return_f=True)
 
-        f_gt = f0[:,None,:] * torch.arange(1, self.num_sines+1).to(f0.device)[None,:,None]
-        mask = (f_gt > 0)
-        loss_f = self.freq_loss_weight *  ((f_s[mask] - f_gt[mask])**2).mean()
+        if f_s is not None:
+            f_gt = f0[:, None, :] * torch.arange(1, self.num_sines + 1).to(f0.device)[None, :, None]
+            mask = f_gt > 0
+            loss_f = self.freq_loss_weight * ((f_s[mask] - f_gt[mask]) ** 2).mean()
+        else:
+            loss_f = 0.0
+
         loss_r = self.loss_fn(x.squeeze(), y.squeeze()).mean()
 
         loss = loss_r + loss_f

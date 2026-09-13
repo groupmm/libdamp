@@ -78,7 +78,7 @@ class SignalF0Dataset(torch.utils.data.Dataset):
             self.signals.append(torch.Tensor(x))
             self.f0s.append(torch.Tensor(f0))
 
-            gain = np.sqrt(np.convolve(x**2, np.ones(self.frame_len)/self.frame_len, mode="same"))
+            gain = np.sqrt(np.convolve(x**2, np.ones(self.frame_len) / self.frame_len, mode="same"))
 
             # pre-define snippets to use
             L_samples = self.num_frames * self.frame_len

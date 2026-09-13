@@ -1,0 +1,2 @@
+train/SignalF0Dataset.path = "../datasets/Leo/"
+train/SignalF0Dataset.selection = r".*"
