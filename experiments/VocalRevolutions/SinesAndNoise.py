@@ -51,7 +51,7 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         self.sine_synth = libdamp.generators.SinusoidalOsc(N, fs, interp_f="end_linear", interp_a="end_linear")
         self.band_synth = libdamp.generators.BandFilteredNoise(N, self.num_noise_bands, 2, fs)
 
-        self.freq_scaling = libdamp.LogitsToFreq(bins_per_freq=self.num_freq_bins, f_min=100, f_max=400)
+        self.freq_scaling = libdamp.LogitsToFreq(bins_per_freq=self.num_freq_bins, f_min=50, f_max=12000)
         self.fc_scaling = libdamp.LogitsToFreq(bins_per_freq=self.num_freq_bins, f_min=200, f_max=15000)
 
         self.model = torch.nn.Sequential(
@@ -80,7 +80,8 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         f_s = self.sine_f_head(z)
         f_s = self.freq_scaling(f_s)
         f_s = torch.transpose(f_s, -2, -1)  # shape: (B, N, F)
-        f_s *= 2 ** torch.linspace(0, 5.6, self.num_sines)[None, :, None].to(f_s)  # distribute in octaves
+        # f_s *= 2 ** torch.linspace(0, 5.6, self.num_sines)[None, :, None].to(f_s)  # distribute in octaves
+        # f_s += torch.linspace(0)[None, :, None].to(f_s) # linear bias
 
         a_s = self.sine_a_head(z)
         a_s = libdamp.exp_sigmoid(a_s - 3, exp=math.log(10.0))
@@ -141,7 +142,8 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         y, f_s = self(x, return_f=True)
 
         f_gt = f0[:,None,:] * torch.arange(1, self.num_sines+1).to(f0.device)[None,:,None]
-        loss_f = 0.001 * ((f_s - f_gt)**2).mean()
+        mask = (f_gt < 0)
+        loss_f = 0.001 * ((f_s[mask] - f_gt[mask])**2).mean()
         loss_r = self.loss_fn(x.squeeze(), y.squeeze()).mean()
 
         loss = loss_r + loss_f
