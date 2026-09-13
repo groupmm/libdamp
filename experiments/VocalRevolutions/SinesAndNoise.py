@@ -27,6 +27,7 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         f_max_mels=5000.0,
         n_mels=256,
         model_size=512,
+        freq_loss_weight=0.001,
         **kwargs,
     ):
         super().__init__(
@@ -43,6 +44,8 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         self.num_sines = num_sines
         self.num_freq_bins = num_freq_bins
         self.num_noise_bands = num_noise_bands
+
+        self.freq_loss_weight = freq_loss_weight
 
         self.meltransform = taudio.transforms.MelSpectrogram(
             fs, n_fft=n_fft_mels, hop_length=N, f_min=f_min_mels, f_max=f_max_mels, n_mels=n_mels, center=False, pad=(n_fft_mels - N) // 2
@@ -142,8 +145,8 @@ class SinesAndNoiseExperiment(libdamp.Experiment):
         y, f_s = self(x, return_f=True)
 
         f_gt = f0[:,None,:] * torch.arange(1, self.num_sines+1).to(f0.device)[None,:,None]
-        mask = (f_gt < 0)
-        loss_f = 0.001 * ((f_s[mask] - f_gt[mask])**2).mean()
+        mask = (f_gt > 0)
+        loss_f = self.freq_loss_weight *  ((f_s[mask] - f_gt[mask])**2).mean()
         loss_r = self.loss_fn(x.squeeze(), y.squeeze()).mean()
 
         loss = loss_r + loss_f
