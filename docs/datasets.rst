@@ -9,6 +9,10 @@ Datasets
    :members:
    :show-inheritance:
 
+.. automodule:: libdamp.datasets.lm_ssd
+   :members:
+   :show-inheritance:
+
 .. automodule:: libdamp.datasets.medleydb
    :members:
    :show-inheritance:
