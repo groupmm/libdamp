@@ -144,7 +144,7 @@ class LMSVRBaselineExperiment(libdamp.Experiment):
         self.ti_filter.update(ti_mag)
         y_ti = self.ti_filter.process(x)
 
-        y_norm = self.peak_norm(y_ti)
+        y_norm = peak_norm(y_ti)
 
         noise = self.noise_synth.generate(noise_mag)
         y_noisy = y_norm + noise
