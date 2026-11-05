@@ -1,0 +1,13 @@
+include 'configs/TISMIR2024/lmsvr_base.gin'
+
+########
+# Held-out test item SG T2, microphone LM-A, singer 3F, "DT" split.
+# Train/val takes taken verbatim from the dataset's own `train_test_splits.csv` (DT column).
+########
+
+# encode this config's own ID into the results folder name, so a trained checkpoint can later
+# be found again from the ID alone (see `experiments/TISMIR2024/visualize_baseline.py`)
+Experiment.name = "SGT2_LMA_3F_DT_{date}"
+
+train/LMSSDDataset.selection = r"(_SG_LM_C0_3F_T3\.wav$|_OC_LM_C0_3F_T2\.wav$|_OC_LM_C0_3F_T3\.wav$|_PL_LM_C0_3F_T2\.wav$|_PL_LM_C0_3F_T3\.wav$)"
+val/LMSSDDataset.selection = r"_SG_LM_C0_3F_T2\.wav$"

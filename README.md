@@ -14,6 +14,7 @@ Framework for experiments with differentiable audio and music processing (DDSP) 
 - [Project structure](#project-structure)
 - [Experiments](#experiments)
   - [ICASSP2026 (Wind Instrument Synthesis with Pulsetables)](#icassp2026-wind-instrument-synthesis-with-pulsetables)
+  - [TISMIR2024 (Larynx Microphone Singing Voice Reconstruction)](#tismir2024-larynx-microphone-singing-voice-reconstruction)
   - [Vocal Revolutions](#vocal-revolutions)
 - [Development](#development)
   - [Running tests](#running-tests)
@@ -102,6 +103,41 @@ To reproduce results:
 3. Update the config variable `PulseItDataset.path` in `configs/ICASSP2026/pulsewave_base.gin`. The default path is `../datasets/ChoraleBricks/libdamp_all`, relative to the main folder of this framework.
 4. Run the experiment, for example with `uv run scripts/run.py --config configs/ICASSP2026/pulsewave_base.gin configs/ICASSP2026/instr/01_tp.gin configs/ICASSP2026/mode/pulse_4.gin` for training with trumpet voice 1 and using the pulsetable method with 4 pulses (see the configs folder for other options).
 5. Trained models are stored in the `results` folder. You can load them and play around with them using the notebook `notebooks/ICASSP2026/explore_model.ipynb`.
+
+### TISMIR2024 (Larynx Microphone Singing Voice Reconstruction)
+
+The files in `experiments/TISMIR2024`, `configs/TISMIR2024`, and `libdamp/datasets/lm_ssd.py` reimplement the baseline system described in Section 5 of:
+
+```
+@article{SchwaerKFRSM24_LarynxMicSVR_TISMIR,
+  author  = {Simon Schw{\"a}r and Michael Krause and Michael Fast and Sebastian Rosenzweig and Frank Scherbaum and Meinard M{\"u}ller},
+  title   = {A Dataset of Larynx Microphone Recordings for Singing Voice Reconstruction},
+  journal = {Transaction of the International Society for Music Information Retrieval ({TISMIR})},
+  year    = {2024},
+  volume  = {7},
+  number  = {1},
+  pages   = {30--43},
+  doi     = {10.5334/tismir.166}
+}
+```
+
+Note that this implementation is NOT the same as the one used for the experiments in the paper. In particular, the following differences may lead to slightly different results:
+* The Convolutional Network architecture consists of a single stack of 3 convolutional layers
+  (no residual/skip connections).
+* Network outputs are mapped to DSP magnitude parameters with a scaled-sigmoid (`exp_sigmoid`, bias -3, exponent log(10)), following the convention used in the ICASSP2026 experiment.
+* Training excerpts are selected at random from each take, and are filtered to skip near-silent excerpts.
+
+
+To reproduce results:
+1. Download the [LM-SSD](https://zenodo.org/records/20287765) dataset and extract it.
+2. Update the `dataset_path` variable in `configs/TISMIR2024/lmsvr_base.gin` to point at the dataset's `audio` folder.
+3. Run the experiment, for example with `uv run scripts/run.py --config configs/TISMIR2024/lmsvr_base.gin configs/TISMIR2024/data_splits/AAT3_LMA_1M_DT.gin` to train on singer 1M with microphone LM-A, holding out take 3 of song "AA" with the "Different Take" (DT) split.
+`configs/TISMIR2024/data_splits` contains configs named `<ExperimentId>_<MicType>_<Singer>_<Split>.gin`, one for each (experiment, LM type, singer, split) combination derived from the dataset's own `train_test_splits.csv` (Section 6 of the paper):
+  * **OF:** overfitting, the held-out take is also included in training
+  * **DT:** different take, the one evaluation take is excluded from an otherwise identical training set
+  * **DS:** different song, all takes of the evaluation take's song are excluded.
+4. Trained models are stored in the `results` folder using a descriptive name.
+5. For a quick sanity check of a trained model, run `uv run experiments/TISMIR2024/visualize_baseline.py <ExperimentId>` (e.g. `AAT3_LMA_1M_DT`, needs the `notebooks` extra for `matplotlib`). It loads that experiment's best checkpoint, runs it on an excerpt of the held-out test take, and saves a plot of the signal at each stage of the signal flow next to the CM reference (similar to Fig. 5 in the paper).
 
 ### Vocal Revolutions
 

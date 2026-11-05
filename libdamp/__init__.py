@@ -16,6 +16,7 @@ from .augment import Augmentation, DropoutArtifactAugmentation, NoiseArtifactAug
 from .datasets import (
     CombinedDataset,
     ExcerptsDataset,
+    LMSSDDataset,
     MDBSynthDataset,
     NSynthDataset,
     PulseItDataset,
@@ -71,6 +72,7 @@ __all__ = [
     "ZipDataset",
     "ExcerptsDataset",
     "SignalF0ExcerptsDataset",
+    "LMSSDDataset",
     "MDBSynthDataset",
     "NSynthDataset",
     "PulseItDataset",
