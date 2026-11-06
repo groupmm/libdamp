@@ -112,7 +112,7 @@ The files in `experiments/TISMIR2024`, `configs/TISMIR2024`, and `libdamp/datase
 @article{SchwaerKFRSM24_LarynxMicSVR_TISMIR,
   author  = {Simon Schw{\"a}r and Michael Krause and Michael Fast and Sebastian Rosenzweig and Frank Scherbaum and Meinard M{\"u}ller},
   title   = {A Dataset of Larynx Microphone Recordings for Singing Voice Reconstruction},
-  journal = {Transaction of the International Society for Music Information Retrieval ({TISMIR})},
+  journal = {Transactions of the International Society for Music Information Retrieval ({TISMIR})},
   year    = {2024},
   volume  = {7},
   number  = {1},
