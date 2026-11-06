@@ -4,7 +4,7 @@ include 'configs/base.gin'
 Experiment.name = "tismir2024_lmsvr_{date}"
 Experiment.early_stopping = False
 Experiment.save_best_n_ckpts = 1
-Experiment.max_epochs = 40
+Experiment.max_epochs = 100
 Experiment.batch_size = 32
 Experiment.limit_val_batches = 1.0
 Experiment.shuffle_data = True
@@ -41,7 +41,7 @@ MSSLoss.w_log = 1.0
 MSSLoss.fft_sizes = (2048, 1024, 512, 256, 128, 64)
 MSSLoss.win = "hann"
 
-dataset_path = "~/Desktop/datasets/lm-ssd/LM-SSD/audio"
+dataset_path = "~/datasets/lm-ssd/LM-SSD/audio"
 
 # The exact data splits are defined in the separate config files in the subfolder "data_splits"
 libdamp.train_dataset = @train/LMSSDDataset()
