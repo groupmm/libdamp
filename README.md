@@ -121,12 +121,8 @@ The files in `experiments/TISMIR2024`, `configs/TISMIR2024`, and `libdamp/datase
 }
 ```
 
-Note that this implementation is NOT the same as the one used for the experiments in the paper. In particular, the following differences may lead to slightly different results:
-* The Convolutional Network architecture consists of a single stack of 3 convolutional layers
-  (no residual/skip connections).
-* Network outputs are mapped to DSP magnitude parameters with a scaled-sigmoid (`exp_sigmoid`, bias -3, exponent log(10)), following the convention used in the ICASSP2026 experiment.
-* Training excerpts are selected at random from each take, and are filtered to skip near-silent excerpts.
-
+Note that this implementation is NOT the same as the one used for the experiments in the paper. In particular, the NN architecture is simplified, consisting of a single stack of 3 convolutional layers (no residual/skip connections), and a bidirectional LSTM layer.
+Also the training procedure and data preprocessing differs.
 
 To reproduce results:
 1. Download the [LM-SSD](https://zenodo.org/records/20287765) dataset and extract it.

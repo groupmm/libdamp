@@ -31,9 +31,9 @@ LMSVRBaselineExperiment.num_bands_ti = 64
 LMSVRBaselineExperiment.num_bands_tv = 64
 LMSVRBaselineExperiment.num_bands_noise = 10
 
-LMSVRBaselineExperiment.model_size_control = 128
+LMSVRBaselineExperiment.model_size_control = 512
 
-LMSVRBaselineExperiment.learning_rate = 1e-3
+LMSVRBaselineExperiment.learning_rate = 1e-4
 
 LMSVRBaselineExperiment.loss_fn = @MSSLoss()
 MSSLoss.w_mag = 1.0
