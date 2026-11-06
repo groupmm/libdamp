@@ -132,8 +132,7 @@ To reproduce results:
   * **OF:** overfitting, the held-out take is also included in training
   * **DT:** different take, the one evaluation take is excluded from an otherwise identical training set
   * **DS:** different song, all takes of the evaluation take's song are excluded.
-4. Trained models are stored in the `results` folder using a descriptive name.
-5. For a quick sanity check of a trained model, run `uv run experiments/TISMIR2024/visualize_baseline.py <ExperimentId>` (e.g. `AAT3_LMA_1M_DT`, needs the `notebooks` extra for `matplotlib`). It loads that experiment's best checkpoint, runs it on an excerpt of the held-out test take, and saves a plot of the signal at each stage of the signal flow next to the CM reference (similar to Fig. 5 in the paper).
+4. Trained models are stored in the `results` folder. You can load them and play around with them using the notebook `notebooks/TISMIR2024/load_model.ipynb`.
 
 ### Vocal Revolutions
 
