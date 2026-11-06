@@ -21,8 +21,7 @@ import libdamp
 
 
 def peak_norm(x, eps=1e-7):
-    """Normalize each signal in the batch to unit peak amplitude.
-    """
+    """Normalize each signal in the batch to unit peak amplitude."""
     peak = x.abs().amax(dim=-1, keepdim=True)
     return x / (peak + eps)
 
@@ -111,6 +110,12 @@ class LMSVRBaselineExperiment(libdamp.Experiment):
         self.noise_head = torch.nn.Linear(model_size_control, num_bands_noise)
         self.tv_head = torch.nn.Linear(model_size_control, num_bands_tv)
 
+        # bias init following the original paper:
+        # TI ramps 0.5->2.0 (treble boost), noise starts quiet, TV starts near-identity
+        self.ti_head.bias.data.copy_(torch.linspace(0.5, 2.0, num_bands_ti))
+        self.noise_head.bias.data.fill_(-1.0)
+        self.tv_head.bias.data.fill_(1.0)
+
         self.ti_filter = libdamp.processors.TVMagnitudesFilter(
             frame_len, filt_len, fs, center_freqs=torch.linspace(0, fs / 2, num_bands_ti), filter_phase="linear"
         )
@@ -118,26 +123,22 @@ class LMSVRBaselineExperiment(libdamp.Experiment):
             frame_len, filt_len, fs, center_freqs=torch.linspace(0, fs / 2, num_bands_tv), filter_phase="linear"
         )
 
-        self.noise_synth = libdamp.generators.SimpleFilteredNoise(
-            frame_len, filt_len, fs, torch.linspace(0, fs / 2, num_bands_noise)
-        )
+        self.noise_synth = libdamp.generators.SimpleFilteredNoise(frame_len, filt_len, fs, torch.linspace(0, fs / 2, num_bands_noise))
 
     def estimate_params(self, x):
-        """Estimate TI filter, TV filter, and noise synthesizer magnitudes from the LM input.
-        """
+        """Estimate TI filter, TV filter, and noise synthesizer magnitudes from the LM input."""
         mel = torch.log(1 + self.mel_transform(x.unsqueeze(-2)))
         feat = self.control_cnn(mel)
         feat = self.control_rnn(feat)
 
-        ti_mag = libdamp.exp_sigmoid(self.ti_head(feat.mean(dim=1, keepdim=True)) - 3, exp=math.log(10.0))
-        noise_mag = libdamp.exp_sigmoid(self.noise_head(feat) - 3, exp=math.log(10.0))
-        tv_mag = libdamp.exp_sigmoid(self.tv_head(feat) - 3, exp=math.log(10.0))
+        ti_mag = libdamp.exp_sigmoid(self.ti_head(feat.mean(dim=1, keepdim=True)), exp=math.log(10.0))
+        noise_mag = libdamp.exp_sigmoid(self.noise_head(feat), exp=math.log(10.0))
+        tv_mag = libdamp.exp_sigmoid(self.tv_head(feat), exp=math.log(10.0))
 
         return ti_mag, tv_mag, noise_mag
 
     def forward(self, x, return_intermediates=False):
-        """Forward pass implementation.
-        """
+        """Forward pass implementation."""
         ti_mag, tv_mag, noise_mag = self.estimate_params(x)
 
         self.ti_filter.clear()
